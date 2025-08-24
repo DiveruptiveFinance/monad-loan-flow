@@ -9,6 +9,15 @@ import { useWalletConnection } from '@/hooks/useWalletConnection';
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { monadTestnet } from 'wagmi/chains';
 
+/**
+ * LoanFormPage - Solicitud de Préstamo
+ * 
+ * Smart Contract Functions Used:
+ * - 0x706f24a5 -> createLoanRequest(uint256) - Create new loan request
+ * 
+ * Contract Address: 0x7F5653D022E2084CD227b74920f88a407a40feA5
+ */
+
 const LoanFormPage = () => {
   const navigate = useNavigate();
   const { isConnected, address } = useWalletConnection();
@@ -40,8 +49,9 @@ const LoanFormPage = () => {
       console.log('Creating loan request with amount:', loanAmount);
 
       // Call the smart contract using Wagmi
-      writeContract({
-        address: '0xdf45Ed5D1921980D24713043028FE1e004c54A42' as `0x${string}`,
+              // Function selector: 0x706f24a5 -> createLoanRequest(uint256)
+        writeContract({
+          address: '0x7F5653D022E2084CD227b74920f88a407a40feA5' as `0x${string}`,
         abi: [
           {
             inputs: [{ name: 'amountToBorrow', type: 'uint256' }],
