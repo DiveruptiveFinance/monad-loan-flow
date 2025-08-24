@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,6 +18,12 @@ const LoanFormPage = () => {
   return (
     <div className="min-h-screen bg-background px-4 pt-8 pb-24">
       <div className="max-w-md mx-auto">
+        <button 
+          onClick={() => navigate('/dashboard')}
+          className="mb-4 p-2 hover:bg-muted rounded-lg transition-colors"
+        >
+          <ArrowLeft size={24} className="text-foreground" />
+        </button>
         <Card className="p-6 space-y-6 bg-card rounded-xl shadow-sm">
           <h2 className="text-2xl font-montserrat font-bold text-foreground text-center">
             Solicitud de Préstamo

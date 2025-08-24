@@ -27,7 +27,7 @@ const AllFormPage = () => {
         <Card className="p-6 space-y-6 bg-card rounded-xl shadow-sm">
           <div className="text-center space-y-4">
             <h2 className="text-3xl font-montserrat font-bold text-foreground">
-              Documentación
+              Verificación
             </h2>
             <p className="text-muted-foreground text-sm leading-relaxed">
               Necesitamos estos documentos para verificar tu identidad y capacidad de pago. 

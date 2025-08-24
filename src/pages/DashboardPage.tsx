@@ -93,16 +93,10 @@ const DashboardPage = () => {
 
         {/* Sección Deuda */}
         <Card className="p-6 bg-card rounded-xl shadow-sm">
-          <div className="flex justify-between items-center mb-2">
+          <div className="mb-2">
             <h2 className="text-2xl font-montserrat font-bold text-foreground">
               Deuda
             </h2>
-            <Button 
-              onClick={() => navigate('/loan-form')}
-              className="bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold px-4 py-2 rounded-lg"
-            >
-              Pedir prestado
-            </Button>
           </div>
           <h3 className="text-sm text-muted-text mb-6">
             Los préstamos solicitados
@@ -158,16 +152,10 @@ const DashboardPage = () => {
 
         {/* Sección Inversiones */}
         <Card className="p-6 bg-card rounded-xl shadow-sm">
-          <div className="flex justify-between items-center mb-2">
+          <div className="mb-2">
             <h2 className="text-2xl font-montserrat font-bold text-foreground">
               Inversiones
             </h2>
-            <Button 
-              onClick={() => navigate('/borrowers-list')}
-              className="bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold px-4 py-2 rounded-lg"
-            >
-              Dar prestado
-            </Button>
           </div>
           <h3 className="text-sm text-muted-text mb-6">
             Los préstamos que has otorgado

@@ -6,7 +6,7 @@ const BottomNav = () => {
   const location = useLocation();
   
   // No mostrar en pantallas de verificación, carga, etc.
-  const hideBottomNavRoutes = ['/loan-approved', '/investment-approved', '/confirmations'];
+  const hideBottomNavRoutes = ['/loan-approved', '/investment-approved', '/confirmations', '/'];
   
   if (hideBottomNavRoutes.includes(location.pathname)) {
     return null;

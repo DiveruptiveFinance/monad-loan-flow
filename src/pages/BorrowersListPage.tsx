@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, TrendingUp } from 'lucide-react';
+import { CheckCircle, TrendingUp, ArrowLeft } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -117,10 +117,18 @@ const BorrowersListPage = () => {
     }
   ];
 
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-background px-4 pt-8 pb-24">
       <div className="max-w-md mx-auto">
         <div className="mb-6">
+          <button 
+            onClick={() => navigate('/dashboard')}
+            className="mb-4 p-2 hover:bg-muted rounded-lg transition-colors"
+          >
+            <ArrowLeft size={24} className="text-foreground" />
+          </button>
           <h2 className="text-2xl font-montserrat font-bold text-foreground mb-2">
             Lista de Solicitantes
           </h2>
