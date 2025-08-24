@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Paperclip, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,18 +8,84 @@ const AllFormPage = () => {
   const navigate = useNavigate();
   const [documentUploaded, setDocumentUploaded] = useState(false);
   const [kycCompleted, setKycCompleted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Check if verification has already been completed
+  useEffect(() => {
+    const checkVerificationStatus = async () => {
+      try {
+        // Check localStorage for existing verification
+        const storedVerification = localStorage.getItem('loanad-verification');
+        console.log('Checking verification status:', storedVerification);
+        
+        if (storedVerification) {
+          const verification = JSON.parse(storedVerification);
+          console.log('Parsed verification data:', verification);
+          
+          if (verification.documentUploaded && verification.kycCompleted) {
+            console.log('Verification complete, but waiting for user to click continue');
+            // Don't redirect automatically - let user click continue
+            setDocumentUploaded(true);
+            setKycCompleted(true);
+          } else {
+            console.log('Partial verification, restoring state');
+            // Partial verification, restore state
+            setDocumentUploaded(verification.documentUploaded || false);
+            setKycCompleted(verification.kycCompleted || false);
+          }
+        } else {
+          console.log('No verification data found');
+        }
+      } catch (error) {
+        console.error('Error checking verification status:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkVerificationStatus();
+  }, [navigate]);
 
   const handleDocumentUpload = () => {
     setDocumentUploaded(true);
+    // Save to localStorage
+    localStorage.setItem('loanad-verification', JSON.stringify({
+      documentUploaded: true,
+      kycCompleted
+    }));
   };
 
   const handleKycComplete = () => {
     setKycCompleted(true);
+    // Save to localStorage
+    localStorage.setItem('loanad-verification', JSON.stringify({
+      documentUploaded,
+      kycCompleted: true
+    }));
   };
 
   const handleContinue = () => {
+    // Save final verification status
+    localStorage.setItem('loanad-verification', JSON.stringify({
+      documentUploaded: true,
+      kycCompleted: true
+    }));
     navigate('/dashboard');
   };
+
+  // Show loading while checking verification status
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-monad-purple mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Verificando estado...</p>
+        </div>
+      </div>
+    );
+  }
+
+
 
   return (
     <div className="min-h-screen bg-background px-4 pt-8 pb-24">
@@ -63,7 +129,12 @@ const AllFormPage = () => {
 
             <Button 
               onClick={handleContinue}
-              className="w-full bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-6 rounded-xl text-lg transition-all duration-300 mt-6"
+              disabled={!documentUploaded || !kycCompleted}
+              className={`w-full font-montserrat font-bold py-6 rounded-xl text-lg transition-all duration-300 mt-6 ${
+                documentUploaded && kycCompleted
+                  ? 'bg-monad-purple hover:bg-monad-purple/90 text-white cursor-pointer'
+                  : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+              }`}
             >
               Continuar
             </Button>

@@ -1,16 +1,81 @@
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { AppKitProvider } from '@/components/ReownButtonProvider';
+import { useState, useEffect } from 'react';
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const [isWalletConnected, setIsWalletConnected] = useState(false);
 
-  const handleLoanClick = () => {
-    navigate('/all-form', { state: { type: 'loan' } });
-  };
+  // Monitor wallet connection status
+  useEffect(() => {
+    const checkConnection = () => {
+      const ethereum = (window as any).ethereum;
+      if (!ethereum) {
+        setIsWalletConnected(false);
+        return;
+      }
+      
+      // Check if there are any accounts connected
+      ethereum.request({ method: 'eth_accounts' })
+        .then((accounts: string[]) => {
+          const connected = accounts && accounts.length > 0;
+          console.log('Wallet connection check:', { accounts, connected });
+          setIsWalletConnected(connected);
+        })
+        .catch((error) => {
+          console.log('Wallet connection error:', error);
+          setIsWalletConnected(false);
+        });
+    };
 
-  const handleInvestClick = () => {
-    navigate('/all-form', { state: { type: 'invest' } });
+    // Initial check
+    checkConnection();
+    
+    // Listen for connection events
+    if ((window as any).ethereum) {
+      (window as any).ethereum.on('accountsChanged', checkConnection);
+      (window as any).ethereum.on('connect', checkConnection);
+      (window as any).ethereum.on('disconnect', checkConnection);
+    }
+
+    return () => {
+      if ((window as any).ethereum) {
+        (window as any).ethereum.removeListener('accountsChanged', checkConnection);
+        (window as any).ethereum.removeListener('connect', checkConnection);
+        (window as any).ethereum.removeListener('disconnect', checkConnection);
+      }
+    };
+  }, []);
+
+  const handleContinue = () => {
+    // Check if verification has already been completed
+    const storedVerification = localStorage.getItem('loanad-verification');
+    console.log('LandingPage - Checking verification status:', storedVerification);
+    
+    if (storedVerification) {
+      try {
+        const verification = JSON.parse(storedVerification);
+        console.log('LandingPage - Parsed verification data:', verification);
+        
+        if (verification.documentUploaded && verification.kycCompleted) {
+          console.log('LandingPage - Verification complete, going to dashboard');
+          // Verification already completed, go directly to dashboard
+          navigate('/dashboard');
+          return;
+        } else {
+          console.log('LandingPage - Verification incomplete, going to verification page');
+        }
+      } catch (error) {
+        console.error('LandingPage - Error parsing verification data:', error);
+      }
+    } else {
+      console.log('LandingPage - No verification data found, going to verification page');
+    }
+    
+    // If no verification or incomplete, go to verification page
+    navigate('/all-form');
   };
 
   return (
@@ -32,13 +97,20 @@ const LandingPage = () => {
           </div>
           
           <div className="space-y-4">
-            <Button 
-              onClick={() => navigate('/all-form')}
-              className="w-full bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-6 rounded-xl text-lg transition-all duration-300"
-            >
-              Iniciar
-              <ArrowRight className="ml-2" size={20} />
-            </Button>
+            {isWalletConnected && (
+              <Button 
+                onClick={handleContinue}
+                className="w-full bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-6 rounded-xl text-lg transition-all duration-300"
+              >
+                Continuar
+                <ArrowRight className="ml-2" size={20} />
+              </Button>
+            )}
+            <div className="flex justify-center">
+              <AppKitProvider>
+                  <appkit-button label="Iniciar Sesión" />
+              </AppKitProvider>
+            </div>
           </div>
         </div>
       </div>

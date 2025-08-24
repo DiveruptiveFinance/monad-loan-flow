@@ -5,7 +5,6 @@ import {Script} from "forge-std/Script.sol";
 
 contract HelperConfig is Script {
     struct NetworkConfig {
-        address usdc;
         uint256 deployerKey;
     }
 
@@ -28,12 +27,11 @@ contract HelperConfig is Script {
     }
 
     function getAnvilNetworkConfig() public view returns (NetworkConfig memory) {
-        if (activeNetworkConfig.usdc != address(0)) {
+        if (activeNetworkConfig.deployerKey != DEFAULT_ANVIL_KEY) {
             return activeNetworkConfig;
         }
 
         return NetworkConfig({
-            usdc: address(0),
             deployerKey: DEFAULT_ANVIL_KEY
         });
     }

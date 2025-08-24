@@ -4,9 +4,11 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, LineChart, Line, XAx
 import { ArrowRight, TrendingUp } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useDisconnect } from '@reown/appkit/react';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
+  const { disconnect } = useDisconnect();
 
   // Estado de usuario nuevo - cambiar a false para usuario con datos
   const [isNewUser] = useState(true);
@@ -82,6 +84,29 @@ const DashboardPage = () => {
       );
     }
     return null;
+  };
+
+  const handleLogout = async () => {
+    try {
+      // Properly disconnect wallet using AppKit
+      await disconnect();
+    } catch (error) {
+      console.log('Wallet disconnect failed, continuing with logout');
+    }
+    
+    // Clear all user data and verification status
+    localStorage.removeItem('loanad-verification');
+    
+    // Clear any other user-related data
+    localStorage.removeItem('loanad-user');
+    localStorage.removeItem('loanad-wallet');
+    
+    // Clear wallet connection state
+    localStorage.removeItem('loanad-wallet-connected');
+    localStorage.removeItem('loanad-wallet-address');
+    
+    // Navigate to landing page
+    navigate('/');
   };
 
   return (
@@ -282,7 +307,7 @@ const DashboardPage = () => {
         </Card>
 
         <Button 
-          onClick={() => navigate('/')}
+          onClick={handleLogout}
           className="w-full bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-6 rounded-xl text-lg transition-all duration-300 mb-20"
         >
           Cerrar Sesión
