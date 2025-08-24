@@ -150,9 +150,14 @@ const DashboardPage = () => {
 
         {/* Sección Inversiones */}
         <Card className="p-6 bg-card rounded-xl shadow-sm">
-          <h2 className="text-2xl font-montserrat font-bold text-foreground mb-2">
-            Inversiones
-          </h2>
+          <div className="flex justify-between items-center mb-2">
+            <h2 className="text-2xl font-montserrat font-bold text-foreground">
+              Inversiones
+            </h2>
+            <Button className="bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold px-4 py-2 rounded-lg">
+              PRESTAR
+            </Button>
+          </div>
           <h3 className="text-sm text-muted-text mb-6">
             Los préstamos que has otorgado
           </h3>
