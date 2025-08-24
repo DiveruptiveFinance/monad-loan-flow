@@ -251,16 +251,12 @@ contract LoanadLendingMarket is Ownable {
 
     // This function is called after the user logs in for the first time
     function assignMaximumAmountForLoan(
-        address user,
-        uint256 amountForLoan
+        address user
     ) external onlyOwner {
-        uint256 amountToSend = 0.1 ether;
+        uint256 amountForLoan = 10 ether; // hardcoded for now
         s_maximumAmountForLoan[user] = amountForLoan;
 
-        (bool success, ) = user.call{value: amountToSend}("");
-        if (!success) {
-            revert LoanadLendingMarket__TransferFailed();
-        }
+        verifyUser(user);
     }
 
     function newMaximumAmountForLoan(address user) internal returns (uint256) {

@@ -16,8 +16,6 @@ const VerificationPageContent = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-
-
   // Check if verification has already been completed
   useEffect(() => {
     const checkVerificationStatus = async () => {

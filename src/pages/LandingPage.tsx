@@ -2,67 +2,37 @@ import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { AppKitProvider } from '@/components/ReownButtonProvider';
-import { useState, useEffect } from 'react';
+import { useWalletConnection } from '@/hooks/useWalletConnection';
+import { useEffect } from 'react';
 
-const LandingPage = () => {
+const LandingPageContent = () => {
   const navigate = useNavigate();
-  const [isWalletConnected, setIsWalletConnected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState<string>('');
+  const { 
+    isConnected, 
+    address, 
+    connectionType, 
+    provider, 
+    refreshConnection 
+  } = useWalletConnection();
 
-  // Monitor wallet connection status
+  // Log connection changes
   useEffect(() => {
-    const checkConnection = () => {
-      const ethereum = (window as any).ethereum;
-      if (!ethereum) {
-        setIsWalletConnected(false);
-        return;
-      }
-      
-      // Check if there are any accounts connected
-      ethereum.request({ method: 'eth_accounts' })
-        .then((accounts: string[]) => {
-          const connected = accounts && accounts.length > 0;
-          console.log('Wallet connection check:', { accounts, connected });
-          setIsWalletConnected(connected);
-          if (connected && accounts[0]) {
-            setWalletAddress(accounts[0]);
-          } else {
-            setWalletAddress('');
-          }
-        })
-        .catch((error) => {
-          console.log('Wallet connection error:', error);
-          setIsWalletConnected(false);
-        });
-    };
-
-    // Initial check
-    checkConnection();
-    
-    // Listen for connection events
-    if ((window as any).ethereum) {
-      (window as any).ethereum.on('accountsChanged', checkConnection);
-      (window as any).ethereum.on('connect', checkConnection);
-      (window as any).ethereum.on('disconnect', checkConnection);
-    }
-
-    return () => {
-      if ((window as any).ethereum) {
-        (window as any).ethereum.removeListener('accountsChanged', checkConnection);
-        (window as any).ethereum.removeListener('connect', checkConnection);
-        (window as any).ethereum.removeListener('disconnect', checkConnection);
-      }
-    };
-  }, []);
+    console.log('Wallet connection state changed:', { 
+      isConnected, 
+      address, 
+      connectionType, 
+      provider 
+    });
+  }, [isConnected, address, connectionType, provider]);
 
   const handleContinue = async () => {
-    if (!isWalletConnected || !walletAddress) {
+    if (!isConnected || !address) {
       console.error('No wallet connected');
       return;
     }
 
     try {
-      console.log('LandingPage - Checking verification status for:', walletAddress);
+      console.log('LandingPage - Checking verification status for:', address);
       
       // Call backend API to check if user is already verified on-chain
       const response = await fetch('http://localhost:4000/api/check-verification', {
@@ -71,7 +41,7 @@ const LandingPage = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userAddress: walletAddress
+          userAddress: address
         }),
       });
 
@@ -90,12 +60,12 @@ const LandingPage = () => {
       } else {
         console.log('LandingPage - User not verified on-chain, going to verification page');
         // User is not verified, go to verification page
-        navigate('/all-form');
+        navigate('/verification');
       }
     } catch (error) {
       console.error('LandingPage - Error checking verification:', error);
       // On error, fallback to verification page
-      navigate('/all-form');
+      navigate('/verification');
     }
   };
 
@@ -116,17 +86,18 @@ const LandingPage = () => {
               Préstamos P2P On-chain
             </h2>
           </div>
+
           
           <div className="space-y-4">
-            {isWalletConnected && (
+            {isConnected && (
               <>
                 {/* Wallet Display */}
                 <div className="border border-monad-purple rounded-lg p-3 bg-card/50">
                   <div className="flex items-center space-x-2">
                     <div className="w-2 h-2 bg-monad-purple rounded-full animate-pulse"></div>
-                                          <span className="text-sm text-foreground font-mono">
-                        {walletAddress ? `0x${walletAddress.slice(2, 6)}...${walletAddress.slice(-4)}` : 'Connecting...'}
-                      </span>
+                    <span className="text-sm text-foreground font-mono">
+                      {address ? `0x${address.slice(2, 6)}...${address.slice(-4)}` : 'Connecting...'}
+                    </span>
                   </div>
                 </div>
                 
@@ -155,6 +126,10 @@ const LandingPage = () => {
       </div>
     </div>
   );
+};
+
+const LandingPage = () => {
+  return <LandingPageContent />;
 };
 
 export default LandingPage;

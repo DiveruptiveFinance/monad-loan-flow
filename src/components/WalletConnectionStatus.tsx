@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { useWalletConnectionContext } from '../contexts/WalletConnectionContext';
+import { useWalletConnection } from '@/hooks/useWalletConnection';
 import { RefreshCw, Wallet, Mail, AlertCircle } from 'lucide-react';
 
 export const WalletConnectionStatus: React.FC = () => {
@@ -11,7 +11,7 @@ export const WalletConnectionStatus: React.FC = () => {
     address, 
     refreshConnection,
     getConnectionInfo 
-  } = useWalletConnectionContext();
+  } = useWalletConnection();
 
   const connectionInfo = getConnectionInfo();
 

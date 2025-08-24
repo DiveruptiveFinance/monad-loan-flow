@@ -3,9 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { Paperclip, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { AppKitProvider } from '@/components/ReownButtonProvider';
+import { useWalletConnection } from '@/hooks/useWalletConnection';
+import WalletConnectionStatus from '@/components/WalletConnectionStatus';
 
-const AllFormPage = () => {
+const AllFormPageContent = () => {
   const navigate = useNavigate();
+  const { isConnected, address, connectionType, provider } = useWalletConnection();
   const [documentUploaded, setDocumentUploaded] = useState(false);
   const [kycCompleted, setKycCompleted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -16,6 +20,15 @@ const AllFormPage = () => {
   useEffect(() => {
     const checkVerificationStatus = async () => {
       try {
+        // Check if user is connected
+        if (!isConnected || !address) {
+          console.log('User not connected');
+          setIsLoading(false);
+          return;
+        }
+
+        console.log('User connected:', address);
+        
         // Check localStorage for existing verification
         const storedVerification = localStorage.getItem('loanad-verification');
         console.log('Checking verification status:', storedVerification);
@@ -46,7 +59,7 @@ const AllFormPage = () => {
     };
 
     checkVerificationStatus();
-  }, [navigate]);
+  }, [navigate, isConnected, address]);
 
   const handleDocumentUpload = () => {
     setDocumentUploaded(true);
@@ -71,91 +84,101 @@ const AllFormPage = () => {
     
     setIsSubmitting(true);
     setMessage(null); // Clear previous messages
+    
     try {
-      // Get the connected wallet address
-      const ethereum = (window as any).ethereum;
-      if (!ethereum) {
-        console.error('No ethereum provider found');
-        return;
-      }
-
-      const accounts = await ethereum.request({ method: 'eth_accounts' });
-      if (!accounts || accounts.length === 0) {
+      if (!isConnected || !address) {
         console.error('No wallet connected');
+        setMessage({ type: 'error', text: 'No hay wallet conectada' });
         return;
       }
 
-      const userAddress = accounts[0];
-      console.log('User address:', userAddress);
+      const userAddress = address;
+      console.log('AllFormPage - Starting verification for user:', userAddress);
 
-      // First, check if user is already verified
-      const verificationResponse = await fetch('http://localhost:4000/api/check-verification', {
+      // Step 1: Call backend to check if user is already verified
+      console.log('AllFormPage - Checking if user is already verified...');
+      setMessage({ type: 'success', text: 'Verificando estado del usuario...' });
+      
+      const checkResponse = await fetch('http://localhost:4000/api/check-verification', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userAddress: userAddress
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userAddress })
       });
 
-      if (!verificationResponse.ok) {
-        throw new Error(`HTTP error! status: ${verificationResponse.status}`);
+      if (checkResponse.ok) {
+        const checkResult = await checkResponse.json();
+        console.log('AllFormPage - Verification check result:', checkResult);
+        
+        if (checkResult.isVerified) {
+          // User is already verified, just go to dashboard
+          setMessage({ 
+            type: 'success', 
+            text: '¡Usuario ya verificado! Redirigiendo al dashboard...' 
+          });
+          
+          setTimeout(() => {
+            navigate('/dashboard');
+          }, 2000);
+          return;
+        }
       }
 
-      const verificationResult = await verificationResponse.json();
-      console.log('Verification check result:', verificationResult);
+      // Step 2: User is not verified, call backend to assign 10 ETH and then verify
+      console.log('AllFormPage - User not verified, calling backend to assign 10 ETH and verify...');
+      setMessage({ 
+        type: 'success', 
+        text: 'Procesando... El propietario está asignando 10 ETH y verificando tu cuenta...' 
+      });
+      
+      const initResponse = await fetch('http://localhost:4000/api/init-loan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userAddress })
+      });
 
-      if (verificationResult.isVerified) {
-        // User is already verified, skip to dashboard
-        setMessage({ type: 'success', text: 'Usuario ya verificado. Redirigiendo...' });
+      if (!initResponse.ok) {
+        throw new Error(`HTTP error! status: ${initResponse.status}`);
+      }
+
+      const initResult = await initResponse.json();
+      console.log('AllFormPage - Backend verification and assignment result:', initResult);
+
+      if (initResult.success) {
+        setMessage({ 
+          type: 'success', 
+          text: `¡Asignación y verificación completadas exitosamente! 
+          Hash: ${initResult.txHash ? initResult.txHash.slice(0, 6) + '...' + initResult.txHash.slice(-4) : 'N/A'}
+          Se han asignado 10 ETH a tu cuenta y tu estado es verificado.`
+        });
+
+        // Save verification status to localStorage
+        localStorage.setItem('loanad-verification', JSON.stringify({
+          documentUploaded: true,
+          kycCompleted: true,
+          verifiedAt: new Date().toISOString(),
+          txHash: initResult.txHash,
+          assignedAmount: '10000000000000000000' // 10 ETH in wei
+        }));
+
+        // Navigate to dashboard after a delay
         setTimeout(() => {
           navigate('/dashboard');
-        }, 1500);
-        return;
+        }, 3000);
+      } else {
+        throw new Error(initResult.error || 'Error en la verificación y asignación');
       }
 
-      // User is not verified, proceed with verification and loan initialization
-      const response = await fetch('http://localhost:4000/api/init-loan', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userAddress: userAddress
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('Loan initialization result:', result);
-
-      // Show success message
-      const shortHash = `${result.txHash.slice(0, 8)}...${result.txHash.slice(-6)}`;
-      setMessage({ type: 'success', text: `Verificación completada! Hash: ${shortHash}` });
-      
-      // Save final verification status
-      localStorage.setItem('loanad-verification', JSON.stringify({
-        documentUploaded: true,
-        kycCompleted: true
-      }));
-
-      // Wait a bit to show success message, then navigate
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 2000);
     } catch (error) {
-      console.error('Error initializing loan:', error);
-      setMessage({ type: 'error', text: 'Error al inicializar el préstamo. Intenta de nuevo.' });
+      console.error('AllFormPage - Error during verification process:', error);
+      setMessage({ 
+        type: 'error', 
+        text: `Error durante la verificación: ${error instanceof Error ? error.message : 'Error desconocido'}` 
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Show loading while checking verification status
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -166,8 +189,6 @@ const AllFormPage = () => {
       </div>
     );
   }
-
-
 
   return (
     <div className="min-h-screen bg-background px-4 pt-8 pb-24">
@@ -183,6 +204,9 @@ const AllFormPage = () => {
               como la de nuestros inversores.
             </p>
           </div>
+          
+          {/* Wallet Connection Status */}
+          <WalletConnectionStatus />
           
           {message && (
             <div className={`p-4 rounded-lg text-sm font-medium ${
@@ -234,7 +258,7 @@ const AllFormPage = () => {
                   Procesando...
                 </>
               ) : (
-                'Continuar'
+                'Hacer Verificación'
               )}
             </Button>
           </div>
@@ -242,6 +266,10 @@ const AllFormPage = () => {
       </div>
     </div>
   );
+};
+
+const AllFormPage = () => {
+  return <AllFormPageContent />;
 };
 
 export default AllFormPage;

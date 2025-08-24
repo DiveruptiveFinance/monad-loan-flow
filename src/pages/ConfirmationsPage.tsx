@@ -35,7 +35,7 @@ const ConfirmationsPage = () => {
       
       // Cuando todas estén confirmadas, navegar después de un breve delay
       setTimeout(() => {
-        navigate('/loan-approved');
+        navigate('/dashboard');
       }, 1000);
     };
 

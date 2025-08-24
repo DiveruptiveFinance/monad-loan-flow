@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAccount } from 'wagmi';
+import { useAccount, useDisconnect } from 'wagmi';
 
 export interface WalletConnection {
   isConnected: boolean;
@@ -9,7 +9,8 @@ export interface WalletConnection {
 }
 
 export const useWalletConnection = () => {
-  const { isConnected: appkitConnected, address: appkitAddress } = useAccount();
+  const { isConnected, address, connector } = useAccount();
+  const { disconnect } = useDisconnect();
   const [walletConnection, setWalletConnection] = useState<WalletConnection>({
     isConnected: false,
     address: null,
@@ -17,95 +18,49 @@ export const useWalletConnection = () => {
     provider: 'none'
   });
 
-  // Check for traditional wallet connections
-  const checkTraditionalWallet = async () => {
-    try {
-      const ethereum = (window as any).ethereum;
-      if (!ethereum) {
-        return null;
+  // Update connection state based on Wagmi
+  const updateConnectionState = () => {
+    if (isConnected && address) {
+      // Determine connection type based on connector
+      let connectionType: 'wallet' | 'email' | 'gmail' = 'wallet';
+      let provider: 'metamask' | 'appkit' = 'metamask';
+
+      if (connector) {
+        const connectorName = connector.name.toLowerCase();
+        if (connectorName.includes('appkit') || connectorName.includes('reown')) {
+          provider = 'appkit';
+          // AppKit primarily handles email connections
+          connectionType = 'email';
+        } else if (connectorName.includes('metamask') || connectorName.includes('injected')) {
+          provider = 'metamask';
+          connectionType = 'wallet';
+        }
       }
 
-      const accounts = await ethereum.request({ method: 'eth_accounts' });
-      if (accounts && accounts.length > 0) {
-        return {
-          address: accounts[0],
-          provider: 'metamask' as const,
-          connectionType: 'wallet' as const
-        };
-      }
-      return null;
-    } catch (error) {
-      console.log('Error checking traditional wallet:', error);
-      return null;
-    }
-  };
-
-  // Update connection state
-  const updateConnectionState = async () => {
-    // First check AppKit connection
-    if (appkitConnected && appkitAddress) {
       setWalletConnection({
         isConnected: true,
-        address: appkitAddress,
-        connectionType: 'email', // AppKit primarily handles email connections
-        provider: 'appkit'
+        address: address,
+        connectionType,
+        provider
       });
-      return;
-    }
-
-    // Then check traditional wallet
-    const traditionalWallet = await checkTraditionalWallet();
-    if (traditionalWallet) {
+    } else {
       setWalletConnection({
-        isConnected: true,
-        address: traditionalWallet.address,
-        connectionType: traditionalWallet.connectionType,
-        provider: traditionalWallet.provider
+        isConnected: false,
+        address: null,
+        connectionType: 'none',
+        provider: 'none'
       });
-      return;
     }
-
-    // No connection found
-    setWalletConnection({
-      isConnected: false,
-      address: null,
-      connectionType: 'none',
-      provider: 'none'
-    });
   };
 
   // Monitor connections
   useEffect(() => {
     updateConnectionState();
-
-    // Set up polling for email connections
-    const connectionInterval = setInterval(updateConnectionState, 2000);
-
-    // Listen for traditional wallet events
-    const ethereum = (window as any).ethereum;
-    if (ethereum) {
-      const handleAccountsChanged = () => updateConnectionState();
-      const handleConnect = () => updateConnectionState();
-      const handleDisconnect = () => updateConnectionState();
-
-      ethereum.on('accountsChanged', handleAccountsChanged);
-      ethereum.on('connect', handleConnect);
-      ethereum.on('disconnect', handleDisconnect);
-
-      return () => {
-        ethereum.removeListener('accountsChanged', handleAccountsChanged);
-        ethereum.removeListener('connect', handleConnect);
-        ethereum.removeListener('disconnect', handleDisconnect);
-        clearInterval(connectionInterval);
-      };
-    }
-
-    return () => clearInterval(connectionInterval);
-  }, [appkitConnected, appkitAddress]);
+  }, [isConnected, address, connector]);
 
   // Manual connection check
   const refreshConnection = async () => {
-    await updateConnectionState();
+    updateConnectionState();
   };
 
   // Get connection info
@@ -144,6 +99,7 @@ export const useWalletConnection = () => {
     ...walletConnection,
     refreshConnection,
     getConnectionInfo,
+    disconnect,
     // Expose individual states for backward compatibility
     isWalletConnected: walletConnection.isConnected,
     walletAddress: walletConnection.address

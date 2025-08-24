@@ -1,318 +1,244 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
-import { ArrowRight, TrendingUp } from 'lucide-react';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useDisconnect } from '@reown/appkit/react';
+import { Card } from '@/components/ui/card';
+import { useWalletConnection } from '@/hooks/useWalletConnection';
+import { Loader2, LogOut, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
-  const { disconnect } = useDisconnect();
-
-  // Estado de usuario nuevo - cambiar a false para usuario con datos
-  const [isNewUser] = useState(true);
-
-  // Datos de deuda
-  const [debtData] = useState({
-    porPagar: isNewUser ? 0 : 7000,
-    pagado: isNewUser ? 0 : 3000
+  const { isConnected, address, disconnect } = useWalletConnection();
+  const [contractData, setContractData] = useState({
+    maxAmountForLoan: '0',
+    isVerified: false,
+    currentDebt: '0',
+    hasLoanRequest: false,
+    loanAmount: '0'
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Datos de inversiones
-  const [investmentData] = useState({
-    totalInvested: isNewUser ? 0 : 15500,
-    averageReturn: isNewUser ? 0 : 11.2,
-    investments: isNewUser ? [] : [
-      { id: '1', name: 'Carlos.nad', amount: 5000, expectedReturn: 12.8 },
-      { id: '2', name: 'Maria.nad', amount: 3500, expectedReturn: 11.2 },
-      { id: '3', name: 'Juan.nad', amount: 4000, expectedReturn: 10.5 },
-      { id: '4', name: 'Ana.nad', amount: 3000, expectedReturn: 9.8 }
-    ]
-  });
+  // Debug logging
+  useEffect(() => {
+    console.log('DashboardPage - Wallet connection state:', { isConnected, address });
+  }, [isConnected, address]);
 
-  // Datos para gráfico de pastel
-  const total = debtData.porPagar + debtData.pagado;
-  const porPagarPct = ((debtData.porPagar / total) * 100).toFixed(1);
-  const pagadoPct = ((debtData.pagado / total) * 100).toFixed(1);
-
-  const pieData = [
-    { name: 'Por pagar', value: debtData.porPagar, percentage: porPagarPct },
-    { name: 'Pagado', value: debtData.pagado, percentage: pagadoPct }
-  ];
-
-  // Datos para gráfico lineal
-  const lineData = isNewUser ? [
-    { month: 'Ene', return: 0 },
-    { month: 'Feb', return: 0 },
-    { month: 'Mar', return: 0 },
-    { month: 'Abr', return: 0 },
-    { month: 'May', return: 0 },
-    { month: 'Jun', return: 0 }
-  ] : [
-    { month: 'Ene', return: 8.5 },
-    { month: 'Feb', return: 9.2 },
-    { month: 'Mar', return: 10.1 },
-    { month: 'Abr', return: 11.0 },
-    { month: 'May', return: 11.2 },
-    { month: 'Jun', return: 12.5 }
-  ];
-
-  const COLORS = ['hsl(var(--monad-purple))', 'hsl(var(--muted))'];
-
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
-          <p className="font-montserrat font-bold text-foreground">{data.name}</p>
-          <p className="text-monad-purple font-bold">${data.value.toLocaleString()}</p>
-          <p className="text-muted-foreground">{data.percentage}%</p>
-        </div>
-      );
+  // Fetch contract data
+  const fetchContractData = async () => {
+    console.log('DashboardPage - Fetching contract data...');
+    
+    if (!isConnected || !address) {
+      console.log('DashboardPage - No wallet connected, skipping fetch');
+      setIsLoading(false);
+      return;
     }
-    return null;
+
+    try {
+      setError(null);
+      const userAddress = address;
+      console.log('DashboardPage - Fetching data for address:', userAddress);
+
+      // Get maximum amount for loan
+      const maxAmountResponse = await fetch('http://localhost:4000/api/check-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userAddress })
+      });
+
+      console.log('DashboardPage - Verification response status:', maxAmountResponse.status);
+
+      if (maxAmountResponse.ok) {
+        const result = await maxAmountResponse.json();
+        console.log('DashboardPage - Verification result:', result);
+        
+        setContractData(prev => ({
+          ...prev,
+          isVerified: result.isVerified,
+          maxAmountForLoan: result.isVerified ? '10000000000000000000' : '0' // 10 ETH in wei if verified
+        }));
+      } else {
+        console.error('DashboardPage - Verification request failed:', maxAmountResponse.status);
+        setError('Error al verificar usuario');
+      }
+
+      // Check localStorage for loan request
+      const loanRequest = localStorage.getItem('loanad-loan-request');
+      if (loanRequest) {
+        const loanData = JSON.parse(loanRequest);
+        console.log('DashboardPage - Found loan request:', loanData);
+        
+        setContractData(prev => ({
+          ...prev,
+          hasLoanRequest: true,
+          loanAmount: loanData.amount || '0'
+        }));
+      }
+
+    } catch (err) {
+      console.error('DashboardPage - Error fetching contract data:', err);
+      setError('Error al cargar datos del contrato');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const LineTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
-          <p className="font-montserrat font-bold">{label}</p>
-          <p className="text-monad-purple font-bold">{payload[0].value}% retorno</p>
-        </div>
-      );
-    }
-    return null;
-  };
+  useEffect(() => {
+    console.log('DashboardPage - useEffect triggered, isConnected:', isConnected, 'address:', address);
+    fetchContractData();
+  }, [isConnected, address]);
 
   const handleLogout = async () => {
     try {
-      // Properly disconnect wallet using AppKit
+      console.log('DashboardPage - Logging out...');
       await disconnect();
+      localStorage.removeItem('loanad-verification');
+      localStorage.removeItem('loanad-loan-request');
+      localStorage.removeItem('loanad-wallet-connected');
+      localStorage.removeItem('loanad-wallet-address');
+      navigate('/');
     } catch (error) {
-      console.log('Wallet disconnect failed, continuing with logout');
+      console.error('DashboardPage - Error during logout:', error);
+      // Force navigation even if disconnect fails
+      localStorage.removeItem('loanad-verification');
+      localStorage.removeItem('loanad-loan-request');
+      localStorage.removeItem('loanad-wallet-connected');
+      localStorage.removeItem('loanad-wallet-address');
+      navigate('/');
     }
-    
-    // Clear all user data and verification status
-    localStorage.removeItem('loanad-verification');
-    
-    // Clear any other user-related data
-    localStorage.removeItem('loanad-user');
-    localStorage.removeItem('loanad-wallet');
-    
-    // Clear wallet connection state
-    localStorage.removeItem('loanad-wallet-connected');
-    localStorage.removeItem('loanad-wallet-address');
-    
-    // Navigate to landing page
-    navigate('/');
   };
+
+  // Calculate debt data
+  const debtData = {
+    total: parseFloat(contractData.maxAmountForLoan) / 1e18, // Convert wei to ETH
+    paid: 0,
+    remaining: parseFloat(contractData.maxAmountForLoan) / 1e18
+  };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-monad-purple mx-auto mb-4" />
+          <p className="text-muted-foreground">Cargando dashboard...</p>
+          <p className="text-xs text-muted-foreground mt-2">
+            Estado: {isConnected ? 'Conectado' : 'No conectado'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <Button onClick={fetchContractData} variant="outline">
+            Reintentar
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show not connected state
+  if (!isConnected || !address) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-muted-foreground mb-4">No hay wallet conectada</p>
+          <Button onClick={() => navigate('/')} variant="outline">
+            Ir al Inicio
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  console.log('DashboardPage - Rendering dashboard with data:', contractData);
 
   return (
     <div className="min-h-screen bg-background px-4 pt-8 pb-24">
-      <div className="max-w-md mx-auto space-y-8">
-        <div className="text-center">
-          <img 
-            src="/lovable-uploads/b9433d6b-951c-4718-8950-f24aab2e29cf.png" 
-            alt="LOANAD Logo" 
-            className="w-12 h-12 mx-auto mb-2"
-          />
-          <h1 className="text-3xl font-montserrat font-bold text-foreground mb-2">
-            Dashboard LOANAD
+      <div className="max-w-md mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-montserrat font-bold text-foreground">
+            Dashboard
           </h1>
-          <p className="text-muted-foreground">
-            Gestiona tus finanzas DeFi
-          </p>
+          <Button 
+            onClick={handleLogout}
+            variant="outline"
+            size="sm"
+            className="flex items-center space-x-2"
+          >
+            <LogOut className="h-4 w-4" />
+            <span>Cerrar Sesión</span>
+          </Button>
         </div>
 
-        {/* Sección Préstamos */}
-        <Card className="p-6 bg-card rounded-xl shadow-sm">
-          <div className="mb-2">
-            <h2 className="text-2xl font-montserrat font-bold text-foreground">
-              Préstamos
-            </h2>
-          </div>
-          <h3 className="text-sm text-muted-text mb-6">
-            Los préstamos solicitados
-          </h3>
-          
-          <div className="text-center mb-4">
-            <p className="text-sm text-muted-foreground mb-1">Monto total</p>
-            <p className="text-3xl font-bold text-foreground">
-              ${(debtData.porPagar + debtData.pagado).toLocaleString()}
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="bg-card-background p-3 rounded-lg border border-border/30 text-center">
-              <p className="text-sm text-muted-foreground mb-1">Por pagar</p>
-              <p className="text-2xl font-bold text-monad-purple">
-                ${debtData.porPagar.toLocaleString()}
-              </p>
-            </div>
-            <div className="bg-card-background p-3 rounded-lg border border-border/30 text-center">
-              <p className="text-sm text-muted-foreground mb-1">Pagado</p>
-              <p className="text-2xl font-bold text-foreground">
-                ${debtData.pagado.toLocaleString()}
-              </p>
-            </div>
-          </div>
-
-          {total === 0 ? (
-            <button
-              onClick={() => navigate('/loan-form')}
-              className="w-full bg-card-background p-6 rounded-lg border border-border/30 hover:border-monad-purple/50 transition-all duration-300 group h-48 flex flex-col items-center justify-center"
-            >
-              <div className="flex flex-col items-center gap-2">
-                <div className="text-4xl">➕</div>
-                <p className="text-foreground font-montserrat font-medium">
-                  Comienza a Pedir
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Haz clic para solicitar un préstamo
-                </p>
-              </div>
-            </button>
-          ) : (
-            <div className="h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={40}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={COLORS[index % COLORS.length]}
-                        className="hover:opacity-80 transition-opacity cursor-pointer"
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<CustomTooltip />} />
-                </PieChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          
-          {/* Botones Pagar y Retirar */}
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            <Button 
-              onClick={() => navigate('/payment')}
-              className="bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-2 rounded-xl text-base transition-all duration-300"
-            >
-              💳 Pagar
-            </Button>
-            <Button 
-              onClick={() => navigate('/withdrawal')}
-              className="bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-2 rounded-xl text-base transition-all duration-300"
-            >
-              💰 Retirar
-            </Button>
+        {/* Wallet Info */}
+        <Card className="p-4 bg-card/50">
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span className="text-sm font-mono text-muted-foreground">
+              {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Loading...'}
+            </span>
           </div>
         </Card>
 
-        {/* Sección Inversiones */}
-        <Card className="p-6 bg-card rounded-xl shadow-sm">
-          <div className="mb-2">
-            <h2 className="text-2xl font-montserrat font-bold text-foreground">
-              Inversiones
-            </h2>
-          </div>
-          <h3 className="text-sm text-muted-text mb-6">
-            Los préstamos que has otorgado
-          </h3>
-          
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="bg-card-background p-3 rounded-lg border border-border/30 text-center">
-              <p className="text-sm text-muted-foreground mb-1">Monto total invertido</p>
-              <p className="text-2xl font-bold text-monad-purple">
-                ${investmentData.totalInvested.toLocaleString()}
-              </p>
-            </div>
-            <div className="bg-card-background p-3 rounded-lg border border-border/30 text-center">
-              <p className="text-sm text-muted-foreground mb-1">Tasa promedio</p>
-              <p className="text-2xl font-bold text-foreground">
-                {investmentData.averageReturn}%
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-3 mb-6">
-            <h4 className="text-lg font-montserrat font-bold text-foreground">
-              Préstamos activos
-            </h4>
-            {investmentData.investments.length > 0 ? (
-              investmentData.investments.map((investment) => (
-                <div key={investment.id} className="bg-card-background p-3 rounded-lg border border-border/30">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h5 className="font-montserrat font-bold text-foreground text-sm">
-                        {investment.name}
-                      </h5>
-                      <p className="text-xs text-muted-foreground">
-                        ${investment.amount.toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-monad-purple font-bold text-sm">
-                        {investment.expectedReturn}%
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        retorno
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <button
-                onClick={() => navigate('/borrowers-list')}
-                className="w-full bg-card-background p-6 rounded-lg border border-border/30 hover:border-monad-purple/50 transition-all duration-300 group"
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <div className="text-4xl">➕</div>
-                  <p className="text-foreground font-montserrat font-medium">
-                    Comienza a invertir
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Haz clic para ver solicitantes
-                  </p>
-                </div>
-              </button>
-            )}
-          </div>
-
-          {/* Botones Reclamar y Reinvertir */}
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            <Button 
-              onClick={() => navigate('/claim')}
-              className="bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-2 rounded-xl text-base transition-all duration-300"
-            >
-              💎 Reclamar
-            </Button>
-            <Button 
-              onClick={() => navigate('/reinvest')}
-              className="bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-2 rounded-xl text-base transition-all duration-300"
-            >
-              🔄 Reinvertir
-            </Button>
+        {/* Verification Status */}
+        <Card className="p-4">
+          <div className="flex items-center space-x-2">
+            <div className={`w-3 h-3 rounded-full ${contractData.isVerified ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+            <span className="font-medium">
+              {contractData.isVerified ? 'Usuario Verificado' : 'Usuario No Verificado'}
+            </span>
           </div>
         </Card>
 
-        <Button 
-          onClick={handleLogout}
-          className="w-full bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-6 rounded-xl text-lg transition-all duration-300 mb-20"
-        >
-          Cerrar Sesión
-          <ArrowRight className="ml-2" size={20} />
-        </Button>
+        {/* Loan Request Status */}
+        {contractData.hasLoanRequest && (
+          <Card className="p-4">
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+              <span className="font-medium">
+                Solicitud de Préstamo: {parseFloat(contractData.loanAmount) / 1e18} ETH
+              </span>
+            </div>
+          </Card>
+        )}
+
+        {/* Debt Overview */}
+        <Card className="p-6">
+          <h2 className="text-xl font-montserrat font-bold text-foreground mb-4">
+            Resumen de Deuda
+          </h2>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <DollarSign className="h-5 w-5 text-green-600" />
+                <span className="text-muted-foreground">Monto total</span>
+              </div>
+              <span className="font-bold">{debtData.total.toFixed(2)} ETH</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <TrendingDown className="h-5 w-5 text-red-600" />
+                <span className="text-muted-foreground">Por pagar</span>
+              </div>
+              <span className="font-bold">{debtData.remaining.toFixed(2)} ETH</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <TrendingUp className="h-5 w-5 text-green-600" />
+                <span className="text-muted-foreground">Pagado</span>
+              </div>
+              <span className="font-bold">{debtData.paid.toFixed(2)} ETH</span>
+            </div>
+          </div>
+        </Card>
       </div>
     </div>
   );
