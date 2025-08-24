@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Wallet, Mail } from 'lucide-react';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -7,11 +8,11 @@ const LoginPage = () => {
   const userType = location.state?.type; // 'loan' or 'invest'
 
   const handleWalletLogin = () => {
-    navigate('/dashboard');
+    navigate('/all-form');
   };
 
   const handleSocialLogin = () => {
-    navigate('/dashboard');
+    navigate('/all-form');
   };
 
   return (
@@ -26,6 +27,7 @@ const LoginPage = () => {
             onClick={handleWalletLogin}
             className="w-full bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-6 rounded-xl text-lg transition-all duration-300"
           >
+            <Wallet className="mr-2" size={20} />
             Entrar con Wallet
           </Button>
           
@@ -33,6 +35,7 @@ const LoginPage = () => {
             onClick={handleSocialLogin}
             className="w-full bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-6 rounded-xl text-lg transition-all duration-300"
           >
+            <Mail className="mr-2" size={20} />
             Entrar con Google / Email
           </Button>
         </div>

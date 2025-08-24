@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import TopBar from "./components/TopBar";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
+import AllFormPage from "./pages/AllFormPage";
 import LoanFormPage from "./pages/LoanFormPage";
 import ConfirmationsPage from "./pages/ConfirmationsPage";
 import LoanApprovedPage from "./pages/LoanApprovedPage";
@@ -27,6 +28,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/all-form" element={<AllFormPage />} />
           <Route path="/loan-form" element={<LoanFormPage />} />
           <Route path="/confirmations" element={<ConfirmationsPage />} />
           <Route path="/loan-approved" element={<LoanApprovedPage />} />
