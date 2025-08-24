@@ -13,8 +13,8 @@ const ConfirmationsPage = () => {
   const navigate = useNavigate();
   const [confirmations, setConfirmations] = useState<ConfirmationItem[]>([
     { id: 'income', label: 'Comprobante de Ingresos', isConfirmed: false, isLoading: true },
-    { id: 'kyc', label: 'ZK Passport', isConfirmed: false, isLoading: false },
-    { id: 'score', label: 'Builder Score', isConfirmed: false, isLoading: false }
+    { id: 'kyc', label: 'Verificación de Identidad', isConfirmed: false, isLoading: false },
+    { id: 'score', label: 'Puntuación de Crédito', isConfirmed: false, isLoading: false }
   ]);
 
   useEffect(() => {
@@ -35,7 +35,7 @@ const ConfirmationsPage = () => {
       
       // Cuando todas estén confirmadas, navegar después de un breve delay
       setTimeout(() => {
-        navigate('/loan-approved');
+        navigate('/dashboard');
       }, 1000);
     };
 

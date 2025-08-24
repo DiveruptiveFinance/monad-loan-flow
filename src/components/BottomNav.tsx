@@ -5,8 +5,13 @@ const BottomNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // No mostrar en pantallas de verificación, carga, etc.
-  const hideBottomNavRoutes = ['/loan-approved', '/investment-approved', '/confirmations', '/'];
+  // Hide on public routes and user flow pages
+  const hideBottomNavRoutes = [
+    '/', // Landing page
+    '/verification', // Verification page
+    '/loan-form', // Loan form
+    '/confirmations' // Confirmations
+  ];
   
   if (hideBottomNavRoutes.includes(location.pathname)) {
     return null;
