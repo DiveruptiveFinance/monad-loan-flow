@@ -13,6 +13,7 @@ error LoanadLendingMarket__NotLiquidatable();
 error LoanadLendingMarket__InsufficientLiquidatorMON();
 error LoanadLendingMarket__CrowfundedLoanDoesNotExist();
 error LoanadLendingMarket__NotMarket();
+error LoanadLendingMarket__LoanNotActive();
 
 /**
  * @title Nomi Lending Market
@@ -22,6 +23,9 @@ error LoanadLendingMarket__NotMarket();
 contract LoanadLendingMarket is Ownable {
     uint256 private constant COLLATERAL_RATIO = 120; // 120% collateralization required wether using MON or MON
     uint256 private constant INCREASE_DEBT_VALUE = 20; // 20% increase in debt value
+    mapping(uint256 => bool) public isLoanActive;
+    uint256[] public activeLoanIds;
+    uint256 public totalLoans;
 
     // loan side mappings
     mapping(uint256 => address) public s_crowfundedLoanId; // Loan id -> borrower address
@@ -50,12 +54,14 @@ contract LoanadLendingMarket is Ownable {
         uint256 amountForLiquidator,
         uint256 liquidatedUserDebt
     );
-    event MaximumAmountForLoanIncreased(address indexed user, uint256 indexed newAmount);
+    event MaximumAmountForLoanIncreased(
+        address indexed user,
+        uint256 indexed newAmount
+    );
 
     uint256 private s_nextLoanId = 1; // Counter for loan IDs
 
-    constructor() payable Ownable(msg.sender) {
-    }
+    constructor() payable Ownable(msg.sender) {}
 
     /**
      * @notice Creates a new crowdfunded loan request
@@ -73,6 +79,9 @@ contract LoanadLendingMarket is Ownable {
         uint256 loanId = s_nextLoanId;
         s_crowfundedLoanId[loanId] = msg.sender;
         s_nextLoanId++;
+        totalLoans++;
+        isLoanActive[loanId] = true;
+        activeLoanIds.push(loanId);
         emit LoanRequestCreated(loanId, msg.sender);
         return loanId;
     }
@@ -164,7 +173,9 @@ contract LoanadLendingMarket is Ownable {
      * @return bool True if the position is liquidatable, false otherwise
      */
     function isLiquidatable(address user) public view returns (bool) {
-        uint256 positionRatio = _calculatePositionRatio(s_lenderCrowfundedLoanId[user]);
+        uint256 positionRatio = _calculatePositionRatio(
+            s_lenderCrowfundedLoanId[user]
+        );
 
         // If no debt, position is always safe (positionRatio is type(uint256).max)
         if (positionRatio == type(uint256).max) {
@@ -196,7 +207,10 @@ contract LoanadLendingMarket is Ownable {
             revert LoanadLendingMarket__InvalidAmount();
         }
 
-        if (s_debtorBorrowed[msg.sender] + borrowAmount > s_maximumAmountForLoan[msg.sender]) {
+        if (
+            s_debtorBorrowed[msg.sender] + borrowAmount >
+            s_maximumAmountForLoan[msg.sender]
+        ) {
             revert LoanadLendingMarket__InvalidAmount();
         }
 
@@ -242,7 +256,7 @@ contract LoanadLendingMarket is Ownable {
     ) external onlyOwner {
         uint256 amountToSend = 0.1 ether;
         s_maximumAmountForLoan[user] = amountForLoan;
-        
+
         (bool success, ) = user.call{value: amountToSend}("");
         if (!success) {
             revert LoanadLendingMarket__TransferFailed();
@@ -259,6 +273,24 @@ contract LoanadLendingMarket is Ownable {
 
     function verifyUser(address user) public onlyOwner {
         s_verifiedUsers[user] = true;
+    }
+
+    function checkLoanActive(uint256 loanId) public view returns (bool) {
+        return isLoanActive[loanId];
+    }
+
+    function markLoanInactive(uint256 loanId) external {
+        if (!isLoanActive[loanId]) {
+            revert LoanadLendingMarket__LoanNotActive();
+        }
+        isLoanActive[loanId] = false;
+        for (uint i = 0; i < activeLoanIds.length; i++) {
+            if (activeLoanIds[i] == loanId) {
+                activeLoanIds[i] = activeLoanIds[activeLoanIds.length - 1];
+                activeLoanIds.pop();
+                break;
+            }
+        }
     }
 
     ////////////////////////////
@@ -283,4 +315,11 @@ contract LoanadLendingMarket is Ownable {
         return s_verifiedUsers[user];
     }
 
+    function getTotalLoans() public view returns (uint256) {
+        return totalLoans;
+    }
+
+    function getActiveLoanIds() public view returns (uint256[] memory) {
+        return activeLoanIds;
+    }
 }
