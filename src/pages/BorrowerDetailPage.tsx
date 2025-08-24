@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowRight, TrendingUp } from 'lucide-react';
+import { ArrowRight, TrendingUp, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,6 +49,15 @@ const BorrowerDetailPage = () => {
 
   return (
     <div className="min-h-screen bg-background px-4 py-8">
+      {/* Botón X para regresar */}
+      <div className="max-w-md mx-auto mb-4">
+        <button 
+          onClick={() => navigate('/borrowers-list')}
+          className="text-foreground hover:text-monad-purple transition-colors"
+        >
+          <X size={24} />
+        </button>
+      </div>
       <div className="max-w-md mx-auto space-y-6">
         <Card className="p-6 bg-card rounded-xl shadow-lg border border-border/50">
           {/* Header con avatar y datos básicos */}
