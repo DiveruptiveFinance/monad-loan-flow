@@ -83,7 +83,7 @@ const LandingPageContent = () => {
               LOANAD
             </h1>
             <h2 className="text-2xl font-montserrat font-bold text-foreground">
-              Préstamos P2P On-chain
+              Mi historial, tu colateral
             </h2>
           </div>
 
@@ -121,7 +121,7 @@ const LandingPageContent = () => {
       
       <div className="text-center">
         <p className="text-sm font-light text-muted-foreground">
-          Powered By Kairos Research
+          Impulsado por Kairos Research
         </p>
       </div>
     </div>

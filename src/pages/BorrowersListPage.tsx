@@ -15,18 +15,29 @@ interface LoanData {
   isActive: boolean;
   requestAmount?: string; // Amount requested in the loan request
   hasLoanRequest: boolean; // Whether this loan has an active request
-  inputAmount?: string; // User input amount in wei
-  inputAmountEth?: string; // User input amount in ETH
 }
 
 interface BorrowerCardProps {
   loanData: LoanData;
 }
 
-const BorrowerCard = ({ loanData }: BorrowerCardProps) => {
+const BorrowerCard = ({ 
+  loanData, 
+  onFundLoan, 
+  onWithdrawFunds, 
+  processingLoanId,
+  inputAmount,
+  onInputChange
+}: BorrowerCardProps & {
+  onFundLoan: (loanData: LoanData) => void;
+  onWithdrawFunds: (loanData: LoanData) => void;
+  processingLoanId: number | null;
+  inputAmount: string;
+  onInputChange: (value: string) => void;
+}) => {
   const navigate = useNavigate();
   
-  // Convert wei to ETH for display
+  // Convert wei to MON for display
   const amountInEth = parseFloat(loanData.amount) / 1e18;
   const collateralInEth = parseFloat(loanData.collateral) / 1e18;
   const requestAmountInEth = parseFloat(loanData.requestAmount || '0') / 1e18;
@@ -55,7 +66,7 @@ const BorrowerCard = ({ loanData }: BorrowerCardProps) => {
                 {loanData.borrower.slice(0, 6)}...{loanData.borrower.slice(-4)}
               </h3>
               <p className="text-sm text-muted-foreground truncate">
-                {amountInEth.toFixed(2)} ETH - Préstamo #{loanData.loanId}
+                {amountInEth.toFixed(2)} MON - Préstamo #{loanData.loanId}
               </p>
             </div>
           </div>
@@ -123,19 +134,19 @@ const BorrowerCard = ({ loanData }: BorrowerCardProps) => {
             <label className="block text-xs font-medium text-muted-foreground">
               Cantidad en ETH
             </label>
+            <p className="text-xs text-muted-foreground">
+              Para Fondear: multiplicador de 10 ETH (ej: 1 = 10 ETH)
+              <br />
+              Para Retirar: cantidad directa en ETH
+            </p>
             <Input 
               type="number"
               placeholder="0.0"
               step="0.01"
               min="0"
               className="h-9 text-sm"
-              value={loanData.inputAmount || ''}
-              onChange={(e) => {
-                const value = e.target.value;
-                const weiValue = value ? (parseFloat(value) * 1e18).toString() : '';
-                loanData.inputAmount = weiValue;
-                loanData.inputAmountEth = value;
-              }}
+              value={inputAmount}
+              onChange={(e) => onInputChange(e.target.value)}
             />
           </div>
           
@@ -143,22 +154,40 @@ const BorrowerCard = ({ loanData }: BorrowerCardProps) => {
           <div className="grid grid-cols-2 gap-2">
             {/* Fund Loan Button */}
             <Button 
-              onClick={() => handleFundLoan(loanData)}
+              onClick={() => onFundLoan(loanData)}
               className="bg-green-600 hover:bg-green-700 text-white font-montserrat font-bold py-2 px-3 rounded-lg transition-all duration-300 text-sm"
-              disabled={!loanData.isActive || !loanData.inputAmount || parseFloat(loanData.inputAmount || '0') <= 0}
+              disabled={!loanData.isActive || !inputAmount || parseFloat(inputAmount) <= 0 || processingLoanId === loanData.loanId}
             >
-              <span className="mr-1">💰</span>
-              Fondear
+              {processingLoanId === loanData.loanId ? (
+                <>
+                  <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                  Procesando...
+                </>
+              ) : (
+                <>
+                  <span className="mr-1">💰</span>
+                  Fondear
+                </>
+              )}
             </Button>
             
             {/* Withdraw Funds Button */}
             <Button 
-              onClick={() => handleWithdrawFunds(loanData)}
+              onClick={() => onWithdrawFunds(loanData)}
               className="bg-orange-600 hover:bg-orange-700 text-white font-montserrat font-bold py-2 px-3 rounded-lg transition-all duration-300 text-sm"
-              disabled={!loanData.isActive || !loanData.inputAmount || parseFloat(loanData.inputAmount || '0') <= 0}
+              disabled={!loanData.isActive || !inputAmount || parseFloat(inputAmount) <= 0 || processingLoanId === loanData.loanId}
             >
-              <span className="mr-1">💸</span>
-              Retirar
+              {processingLoanId === loanData.loanId ? (
+                <>
+                  <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                  Procesando...
+                </>
+              ) : (
+                <>
+                  <span className="mr-1">💸</span>
+                  Retirar
+                </>
+              )}
             </Button>
           </div>
           
@@ -185,6 +214,8 @@ const BorrowersListPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showOnlyRequests, setShowOnlyRequests] = useState(false);
+  const [processingLoanId, setProcessingLoanId] = useState<number | null>(null);
+  const [inputAmounts, setInputAmounts] = useState<{ [key: number]: string }>({});
 
   const fetchLoanData = async () => {
     try {
@@ -283,6 +314,93 @@ const BorrowersListPage = () => {
     setIsRefreshing(true);
     await fetchLoanData();
     setIsRefreshing(false);
+  };
+
+  const handleFundLoan = async (loanData: LoanData) => {
+    const inputAmount = inputAmounts[loanData.loanId];
+    if (!inputAmount || parseFloat(inputAmount) <= 0) {
+      alert('Por favor ingresa una cantidad válida');
+      return;
+    }
+
+    setProcessingLoanId(loanData.loanId);
+
+    try {
+      // The input amount is a multiplier for 10 ETH (10e18 wei)
+      // Example: input "1" = 1 * 10e18 = 10 ETH in wei
+      const amountInWei = (parseFloat(inputAmount) * 10 * 1e18).toString();
+      console.log(`Funding loan ${loanData.loanId} with amount: ${amountInWei} wei (${inputAmount} * 10 ETH)`);
+      
+      // Call the smart contract function addCollateralForCrowfundedLoan(uint256)
+      // Function selector: 0x5886cb68
+      // This function expects the loanId and msg.value will be the amount
+      const response = await fetch('http://localhost:4000/api/add-collateral', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          loanId: loanData.loanId,
+          amount: amountInWei // This will be the msg.value
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(`¡Préstamo fondeado exitosamente! Hash: ${result.txHash}`);
+        // Refresh data after successful funding
+        await fetchLoanData();
+      } else {
+        const error = await response.json();
+        alert(`Error al fondear: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Error funding loan:', error);
+      alert(`Error al fondear el préstamo: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    } finally {
+      setProcessingLoanId(null);
+    }
+  };
+
+  const handleWithdrawFunds = async (loanData: LoanData) => {
+    const inputAmount = inputAmounts[loanData.loanId];
+    if (!inputAmount || parseFloat(inputAmount) <= 0) {
+      alert('Por favor ingresa una cantidad válida');
+      return;
+    }
+
+    setProcessingLoanId(loanData.loanId);
+
+    try {
+      // For withdraw, the input amount is directly in ETH, convert to wei
+      const amountInWei = (parseFloat(inputAmount) * 1e18).toString();
+      console.log(`Withdrawing from loan ${loanData.loanId} with amount: ${amountInWei} wei (${inputAmount} ETH)`);
+      
+      // Call the smart contract function withdrawForCrowfundedLoan(uint256,uint256)
+      // Function selector: 0x1e7b5766
+      // First argument: amount, Second argument: loanId
+      const response = await fetch('http://localhost:4000/api/withdraw-collateral', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          amount: amountInWei, // First argument: amount
+          loanId: loanData.loanId // Second argument: loanId
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(`¡Fondos retirados exitosamente! Hash: ${result.txHash}`);
+        // Refresh data after successful withdrawal
+        await fetchLoanData();
+      } else {
+        const error = await response.json();
+        alert(`Error al retirar: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Error withdrawing funds:', error);
+      alert(`Error al retirar fondos: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    } finally {
+      setProcessingLoanId(null);
+    }
   };
 
   useEffect(() => {
@@ -418,51 +536,10 @@ const BorrowersListPage = () => {
                   </span>
                 )}
               </h3>
-              {/* Active Loan IDs Summary */}
-              {loans.length > 0 && (
-                <div className="mt-2 p-3 bg-muted/30 rounded-lg border border-border/50">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-muted-foreground">📋 IDs de Préstamos Activos:</span>
-                      <span className="text-xs text-monad-purple font-bold">{loans.length}</span>
-                    </div>
-                    <Button
-                      onClick={() => {
-                        const loanIds = loans.map(loan => loan.loanId).join(', ');
-                        navigator.clipboard.writeText(loanIds);
-                      }}
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 px-2 text-xs"
-                    >
-                      📋 Copiar IDs
-                    </Button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {loans.map((loan) => (
-                      <div 
-                        key={loan.loanId}
-                        className="px-2 py-1 bg-monad-purple/10 border border-monad-purple/20 rounded-md text-xs font-mono text-monad-purple"
-                      >
-                        #{loan.loanId}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-2 text-xs text-muted-foreground">
-                    <strong>Lista completa:</strong> [{loans.map(loan => loan.loanId).join(', ')}]
-                  </div>
-                </div>
-              )}
             </div>
             <div className="flex gap-2">
-              <Button
-                onClick={() => setShowOnlyRequests(!showOnlyRequests)}
-                variant={showOnlyRequests ? "default" : "outline"}
-                size="sm"
-                className="shrink-0"
-              >
-                {showOnlyRequests ? '📋' : '📋'} Solicitudes
-              </Button>
+
+
               <Button
                 onClick={handleRefresh}
                 variant="outline"
@@ -554,7 +631,15 @@ const BorrowersListPage = () => {
           {loans
             .filter(loan => !showOnlyRequests || loan.hasLoanRequest)
             .map((loan) => (
-              <BorrowerCard key={loan.loanId} loanData={loan} />
+              <BorrowerCard 
+                key={loan.loanId} 
+                loanData={loan}
+                onFundLoan={handleFundLoan}
+                onWithdrawFunds={handleWithdrawFunds}
+                processingLoanId={processingLoanId}
+                inputAmount={inputAmounts[loan.loanId] || ''}
+                onInputChange={(value) => setInputAmounts(prev => ({ ...prev, [loan.loanId]: value }))}
+              />
             ))}
         </div>
       </div>

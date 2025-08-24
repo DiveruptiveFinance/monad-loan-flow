@@ -89,7 +89,7 @@ const DashboardPage = () => {
             }
           } catch (err) {
             console.log('Could not fetch max amount, using default');
-            maxAmount = '10000000000000000000'; // 10 ETH in wei
+            maxAmount = '10000000000000000000'; // 10 MON in wei
           }
         }
 
@@ -195,7 +195,7 @@ const DashboardPage = () => {
 
     const collateralAmount = (parseFloat(contractData.userLoanCollateral) / 1e18).toFixed(2);
     const confirmWithdraw = window.confirm(
-      `¿Estás seguro de que quieres retirar ${collateralAmount} ETH de colateral?\n\nEsta acción no se puede deshacer.`
+      `¿Estás seguro de que quieres retirar ${collateralAmount} MON de colateral?\n\nEsta acción no se puede deshacer.`
     );
 
     if (!confirmWithdraw) {

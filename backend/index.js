@@ -231,15 +231,50 @@ app.post("/api/get-loan-collateral", async (req, res) => {
 });
 
 /**
+ * Endpoint para agregar colateral a un préstamo
+ * Function selector: 0x5886cb68 -> addCollateralForCrowfundedLoan(uint256)
+ */
+app.post("/api/add-collateral", async (req, res) => {
+  const { loanId, amount } = req.body;
+
+  if (!loanId || isNaN(parseInt(loanId))) {
+    return res.status(400).json({ error: "ID de préstamo inválido" });
+  }
+
+  if (!amount || isNaN(parseInt(amount))) {
+    return res.status(400).json({ error: "Monto inválido" });
+  }
+
+  try {
+    console.log(`Adding collateral for loan: ${loanId}`);
+    console.log(`Amount: ${amount} wei`);
+    console.log(`Calling addCollateralForCrowfundedLoan with selector: 0x5886cb68`);
+    
+    // Function selector: 0x5886cb68 -> addCollateralForCrowfundedLoan(uint256)
+    // The amount parameter is the msg.value, so we pass it as the transaction value
+    const addCollateralTx = await contract.addCollateralForCrowfundedLoan(loanId, { value: amount });
+    console.log(`Add collateral transaction sent: ${addCollateralTx.hash}`);
+    
+    const addCollateralReceipt = await addCollateralTx.wait();
+    console.log(`Add collateral transaction confirmed in block: ${addCollateralReceipt.blockNumber}`);
+    
+    res.json({ 
+      success: true, 
+      txHash: addCollateralTx.hash,
+      message: "Colateral agregado exitosamente"
+    });
+  } catch (error) {
+    console.error('Error adding collateral:', error);
+    res.status(500).json({ error: "Error al agregar colateral", details: error.message });
+  }
+});
+
+/**
  * Endpoint para retirar colateral de un préstamo
  * Function selector: 0x1e7b5766 -> withdrawForCrowfundedLoan(uint256,uint256)
  */
 app.post("/api/withdraw-collateral", async (req, res) => {
-  const { userAddress, amount, loanId } = req.body;
-
-  if (!ethers.isAddress(userAddress)) {
-    return res.status(400).json({ error: "Dirección de usuario inválida" });
-  }
+  const { amount, loanId } = req.body;
 
   if (!amount || isNaN(parseInt(amount))) {
     return res.status(400).json({ error: "Monto inválido" });
@@ -250,10 +285,12 @@ app.post("/api/withdraw-collateral", async (req, res) => {
   }
 
   try {
-    console.log(`Withdrawing collateral for user: ${userAddress}`);
-    console.log(`Amount: ${amount}, Loan ID: ${loanId}`);
+    console.log(`Withdrawing collateral for loan: ${loanId}`);
+    console.log(`Amount: ${amount} wei`);
     console.log(`Calling withdrawForCrowfundedLoan with selector: 0x1e7b5766`);
     
+    // Function selector: 0x1e7b5766 -> withdrawForCrowfundedLoan(uint256,uint256)
+    // First argument: amount, Second argument: loanId
     const withdrawTx = await contract.withdrawForCrowfundedLoan(amount, loanId);
     console.log(`Withdraw transaction sent: ${withdrawTx.hash}`);
     

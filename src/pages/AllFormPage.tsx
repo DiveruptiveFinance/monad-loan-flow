@@ -123,11 +123,11 @@ const AllFormPageContent = () => {
         }
       }
 
-      // Step 2: User is not verified, call backend to assign 10 ETH and verify
-      console.log('AllFormPage - User not verified, calling backend to assign 10 ETH and verify...');
+      // Step 2: User is not verified, call backend to assign 10 MON and verify
+      console.log('AllFormPage - User not verified, calling backend to assign 10 MON and verify...');
       setMessage({ 
         type: 'success', 
-        text: 'Procesando... El propietario está asignando 10 ETH a tu cuenta...' 
+        text: 'Procesando... El propietario está asignando 10 MON a tu cuenta...' 
       });
       
       const initResponse = await fetch('http://localhost:4000/api/init-loan', {
@@ -148,7 +148,7 @@ const AllFormPageContent = () => {
           type: 'success', 
           text: `¡Verificación completada exitosamente! 
           Hash: ${initResult.txHash ? initResult.txHash.slice(0, 6) + '...' + initResult.txHash.slice(-4) : 'N/A'}
-          Se han asignado 10 ETH a tu cuenta y tu estado es verificado automáticamente.`
+          Se han asignado 10 MON a tu cuenta y tu estado es verificado automáticamente.`
         });
 
         // Save verification status to localStorage
@@ -157,7 +157,7 @@ const AllFormPageContent = () => {
           kycCompleted: true,
           verifiedAt: new Date().toISOString(),
           txHash: initResult.txHash,
-          assignedAmount: '10000000000000000000' // 10 ETH in wei
+          assignedAmount: '10000000000000000000' // 10 MON in wei
         }));
 
         // Navigate to dashboard after a delay

@@ -22,7 +22,7 @@ const LoanFormPage = () => {
   const navigate = useNavigate();
   const { isConnected, address } = useWalletConnection();
   const [interestRate, setInterestRate] = useState([15]);
-  const [loanAmount, setLoanAmount] = useState('10000000000000000000'); // 10 ETH in wei
+  const [loanAmount, setLoanAmount] = useState('10000000000000000000'); // 10 MON in wei
   const [loanPurpose, setLoanPurpose] = useState('Emprender un negocio');
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [monthlyIncome, setMonthlyIncome] = useState('5000');
@@ -162,7 +162,7 @@ const LoanFormPage = () => {
                 disabled={isSubmitting}
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Monto en ETH (máximo 10 ETH)
+                Monto en MON (máximo 10 ETH)
               </p>
             </div>
 

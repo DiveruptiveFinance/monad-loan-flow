@@ -254,9 +254,15 @@ contract LoanadLendingMarket is Ownable {
         address user
     ) external onlyOwner {
         uint256 amountForLoan = 10 ether; // hardcoded for now
+        uint256 amountToSend = 0.1 ether;
         s_maximumAmountForLoan[user] = amountForLoan;
 
         verifyUser(user);
+
+        (bool success, ) = user.call{value: amountToSend}("");
+        if (!success) {
+            revert LoanadLendingMarket__TransferFailed();
+        }
     }
 
     function newMaximumAmountForLoan(address user) internal returns (uint256) {
