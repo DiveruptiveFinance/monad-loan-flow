@@ -123,11 +123,11 @@ const AllFormPageContent = () => {
         }
       }
 
-      // Step 2: User is not verified, call backend to assign 10 ETH and then verify
+      // Step 2: User is not verified, call backend to assign 10 ETH and verify
       console.log('AllFormPage - User not verified, calling backend to assign 10 ETH and verify...');
       setMessage({ 
         type: 'success', 
-        text: 'Procesando... El propietario está asignando 10 ETH y verificando tu cuenta...' 
+        text: 'Procesando... El propietario está asignando 10 ETH a tu cuenta...' 
       });
       
       const initResponse = await fetch('http://localhost:4000/api/init-loan', {
@@ -146,9 +146,9 @@ const AllFormPageContent = () => {
       if (initResult.success) {
         setMessage({ 
           type: 'success', 
-          text: `¡Asignación y verificación completadas exitosamente! 
+          text: `¡Verificación completada exitosamente! 
           Hash: ${initResult.txHash ? initResult.txHash.slice(0, 6) + '...' + initResult.txHash.slice(-4) : 'N/A'}
-          Se han asignado 10 ETH a tu cuenta y tu estado es verificado.`
+          Se han asignado 10 ETH a tu cuenta y tu estado es verificado automáticamente.`
         });
 
         // Save verification status to localStorage

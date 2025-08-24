@@ -14,7 +14,7 @@ const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 // Address: 0xdf45Ed5D1921980D24713043028FE1e004c54A42
 // Function Selectors:
 // - 0xd117fc99 -> getVerifiedUser(address)
-// - 0xe1c8b0cb -> assignMaximumAmountForLoan(address,uint256)  
+// - 0x753008b1 -> assignMaximumAmountForLoan(address)  
 // - 0x4d813120 -> verifyUser(address)
 const contract = new ethers.Contract("0xdf45Ed5D1921980D24713043028FE1e004c54A42", contractAbiFile.abi, signer);
 
@@ -48,10 +48,9 @@ app.post("/api/check-verification", async (req, res) => {
 
 /**
  * Endpoint para inicializar préstamo para un nuevo usuario
- * Este endpoint llama a assignMaximumAmountForLoan y luego verifyUser usando la cuenta del owner
- * Function selectors:
- * - 0xe1c8b0cb -> assignMaximumAmountForLoan(address,uint256)
- * - 0x4d813120 -> verifyUser(address)
+ * Este endpoint llama a assignMaximumAmountForLoan usando la cuenta del owner
+ * Function selector: 0x753008b1 -> assignMaximumAmountForLoan(address)
+ * Nota: La función del contrato ya hardcodea 10 ETH y llama a verifyUser internamente
  */
 app.post("/api/init-loan", async (req, res) => {
   const { userAddress } = req.body;
@@ -69,35 +68,26 @@ app.post("/api/init-loan", async (req, res) => {
     console.log(`Owner calling from: ${signer.address}`);
     console.log(`Contract address: 0xdf45Ed5D1921980D24713043028FE1e004c54A42`);
 
-    // Step 1: Assign maximum amount for loan (10 ETH) FIRST
-    const amountToAssign = ethers.parseEther("10"); // 10 ETH
-    console.log(`\n1. Assigning ${ethers.formatEther(amountToAssign)} ETH to user: ${userAddress}`);
-    console.log(`Calling assignMaximumAmountForLoan with selector: 0xe1c8b0cb`);
+    // Call assignMaximumAmountForLoan - this function already:
+    // 1. Assigns 10 ETH to the user (hardcoded in contract)
+    // 2. Calls verifyUser internally
+    console.log(`\nCalling assignMaximumAmountForLoan with selector: 0x753008b1`);
+    console.log(`This will assign 10 ETH and verify the user automatically`);
     
-    const assignTx = await contract.assignMaximumAmountForLoan(userAddress, amountToAssign);
-    console.log(`Assignment transaction sent: ${assignTx.hash}`);
+    const assignTx = await contract.assignMaximumAmountForLoan(userAddress);
+    console.log(`Transaction sent: ${assignTx.hash}`);
     
     const assignReceipt = await assignTx.wait();
-    console.log(`Assignment transaction confirmed in block: ${assignReceipt.blockNumber}`);
-
-    // Step 2: THEN verify the user using owner's account
-    console.log(`\n2. Verifying user: ${userAddress}`);
-    console.log(`Calling verifyUser with selector: 0x4d813120`);
-    const verifyTx = await contract.verifyUser(userAddress);
-    console.log(`Verify transaction sent: ${verifyTx.hash}`);
-    
-    const verifyReceipt = await verifyTx.wait();
-    console.log(`Verify transaction confirmed in block: ${verifyReceipt.blockNumber}`);
+    console.log(`Transaction confirmed in block: ${assignReceipt.blockNumber}`);
 
     console.log(`\n=== INIT LOAN PROCESS COMPLETED ===`);
     console.log(`User ${userAddress} now has 10 ETH assigned and is verified`);
 
     res.json({ 
       success: true, 
-      txHash: verifyTx.hash,
+      txHash: assignTx.hash,
       message: "10 ETH asignados y usuario verificado exitosamente",
-      assignTxHash: assignTx.hash,
-      verifyTxHash: verifyTx.hash
+      details: "La función assignMaximumAmountForLoan asignó 10 ETH y verificó al usuario automáticamente"
     });
   } catch (error) {
     console.error('\n=== ERROR IN LOAN INITIALIZATION ===');
