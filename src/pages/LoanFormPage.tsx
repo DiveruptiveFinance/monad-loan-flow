@@ -15,7 +15,7 @@ import { monadTestnet } from 'wagmi/chains';
  * Smart Contract Functions Used:
  * - 0x706f24a5 -> createLoanRequest(uint256) - Create new loan request
  * 
- * Contract Address: 0x7F5653D022E2084CD227b74920f88a407a40feA5
+ * Contract Address: 0x2072d7D9E54cea8998eA6D5C39CB07766e48B314
  */
 
 const LoanFormPage = () => {
@@ -49,9 +49,9 @@ const LoanFormPage = () => {
       console.log('Creating loan request with amount:', loanAmount);
 
       // Call the smart contract using Wagmi
-              // Function selector: 0x706f24a5 -> createLoanRequest(uint256)
-        writeContract({
-          address: '0x7F5653D022E2084CD227b74920f88a407a40feA5' as `0x${string}`,
+                    // Function selector: 0x706f24a5 -> createLoanRequest(uint256)
+      writeContract({
+        address: '0x2072d7D9E54cea8998eA6D5C39CB07766e48B314' as `0x${string}`,
         abi: [
           {
             inputs: [{ name: 'amountToBorrow', type: 'uint256' }],

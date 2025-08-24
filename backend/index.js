@@ -11,12 +11,12 @@ app.use(cors());
 const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
 const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 // Smart Contract: LoanadLendingMarket
-// Address: 0x7F5653D022E2084CD227b74920f88a407a40feA5
+// Address: 0x2072d7D9E54cea8998eA6D5C39CB07766e48B314
 // Function Selectors:
 // - 0xd117fc99 -> getVerifiedUser(address)
-// - 0x753008b1 -> assignMaximumAmountForLoan(address)  
+// - 0x753008b1 -> assignMaximumAmountForLoan(address)
 // - 0x4d813120 -> verifyUser(address)
-const contract = new ethers.Contract("0x7F5653D022E2084CD227b74920f88a407a40feA5", contractAbiFile.abi, signer);
+const contract = new ethers.Contract("0x2072d7D9E54cea8998eA6D5C39CB07766e48B314", contractAbiFile.abi, signer);
 
 /**
  * Endpoint para verificar si un usuario ya está verificado
@@ -66,7 +66,7 @@ app.post("/api/init-loan", async (req, res) => {
     console.log(`\n=== INIT LOAN PROCESS STARTED ===`);
     console.log(`Target user: ${userAddress}`);
     console.log(`Owner calling from: ${signer.address}`);
-    console.log(`Contract address: 0x7F5653D022E2084CD227b74920f88a407a40feA5`);
+    console.log(`Contract address: 0x2072d7D9E54cea8998eA6D5C39CB07766e48B314`);
 
     // Call assignMaximumAmountForLoan - this function already:
     // 1. Assigns 10 ETH to the user (hardcoded in contract)
@@ -251,7 +251,6 @@ app.post("/api/add-collateral", async (req, res) => {
     console.log(`Calling addCollateralForCrowfundedLoan with selector: 0x5886cb68`);
     
     // Function selector: 0x5886cb68 -> addCollateralForCrowfundedLoan(uint256)
-    // The amount parameter is the msg.value, so we pass it as the transaction value
     const addCollateralTx = await contract.addCollateralForCrowfundedLoan(loanId, { value: amount });
     console.log(`Add collateral transaction sent: ${addCollateralTx.hash}`);
     
@@ -309,21 +308,94 @@ app.post("/api/withdraw-collateral", async (req, res) => {
 });
 
 /**
- * Endpoint para pagar MON y reducir deuda
- * Function selector: 0x3d263c33 -> repayMON()
+ * Endpoint para pedir prestado MON
+ * Function selector: 0x2645b1db -> borrowMON(uint256)
  */
-app.post("/api/repay-mon", async (req, res) => {
-  const { userAddress } = req.body;
+app.post("/api/borrow-mon", async (req, res) => {
+  const { amount } = req.body;
+
+  if (!amount || isNaN(parseInt(amount))) {
+    return res.status(400).json({ error: "Monto inválido" });
+  }
+
+  try {
+    console.log(`Borrowing MON amount: ${amount} wei`);
+    console.log(`Calling borrowMON with selector: 0x2645b1db`);
+    
+    // Call borrowMON(uint256) with the specified amount
+    // Function selector: 0x2645b1db -> borrowMON(uint256)
+    const borrowTx = await contract.borrowMON(amount);
+    console.log(`Borrow transaction sent: ${borrowTx.hash}`);
+    
+    const borrowReceipt = await borrowTx.wait();
+    console.log(`Borrow transaction confirmed in block: ${borrowReceipt.blockNumber}`);
+    
+    res.json({ 
+      success: true, 
+      txHash: borrowTx.hash,
+      message: "MON pedido prestado exitosamente"
+    });
+  } catch (error) {
+    console.error('Error borrowing MON:', error);
+    res.status(500).json({ error: "Error al pedir prestado", details: error.message });
+  }
+});
+
+/**
+ * Endpoint para obtener la deuda del usuario
+ * Function selector: 0x6b9e1d93 -> s_debtorBorrowed(address)
+ */
+app.get("/api/get-user-debt/:userAddress", async (req, res) => {
+  const { userAddress } = req.params;
 
   if (!ethers.isAddress(userAddress)) {
     return res.status(400).json({ error: "Dirección de usuario inválida" });
   }
 
   try {
-    console.log(`Repaying MON for user: ${userAddress}`);
-    console.log(`Calling repayMON with selector: 0x3d263c33`);
+    console.log(`Getting debt for user: ${userAddress}`);
+    console.log(`Calling s_debtorBorrowed with selector: 0x6b9e1d93`);
     
-    const repayTx = await contract.repayMON();
+    // Get user debt using s_debtorBorrowed(address)
+    const userDebt = await contract.s_debtorBorrowed(userAddress);
+    console.log(`User debt: ${userDebt.toString()} wei`);
+    
+    res.json({ 
+      success: true, 
+      userDebt: userDebt.toString(),
+      userDebtEth: (parseFloat(userDebt.toString()) / 1e18).toFixed(4)
+    });
+  } catch (error) {
+    console.error('Error getting user debt:', error);
+    res.status(500).json({ error: "Error al obtener deuda del usuario", details: error.message });
+  }
+});
+
+/**
+ * Endpoint para pagar MON y reducir deuda
+ * Function selector: 0x3d263c33 -> repayMON()
+ */
+app.post("/api/repay-mon", async (req, res) => {
+  const { userAddress, amount } = req.body;
+
+  if (!ethers.isAddress(userAddress)) {
+    return res.status(400).json({ error: "Dirección de usuario inválida" });
+  }
+
+  if (!amount || isNaN(parseInt(amount))) {
+    return res.status(400).json({ error: "Monto inválido" });
+  }
+
+  try {
+    console.log(`Repaying MON for user: ${userAddress}`);
+    console.log(`Amount: ${amount} wei`);
+    console.log(`Calling repayMON with selector: 0x3d263c33`);
+    console.log(`Contract address: ${contract.address}`);
+    console.log(`Signer address: ${signer.address}`);
+    
+    // Call repayMON with msg.value (the amount is sent as ETH)
+    // Function selector: 0x3d263c33 -> repayMON() (payable function)
+    const repayTx = await contract.repayMON({ value: amount });
     console.log(`Repay transaction sent: ${repayTx.hash}`);
     
     const repayReceipt = await repayTx.wait();
@@ -336,6 +408,12 @@ app.post("/api/repay-mon", async (req, res) => {
     });
   } catch (error) {
     console.error('Error repaying MON:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      reason: error.reason,
+      stack: error.stack
+    });
     res.status(500).json({ error: "Error al pagar MON", details: error.message });
   }
 });

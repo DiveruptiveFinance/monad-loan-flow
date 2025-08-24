@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { useWalletConnection } from '@/hooks/useWalletConnection';
 import { 
   Loader2, 
@@ -34,12 +35,15 @@ const DashboardPage = () => {
     totalLoans: '0',
     activeLoanIds: [],
     userLoanId: null,
-    userLoanCollateral: '0'
+    userLoanCollateral: '0',
+    userDebt: '0'
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [isRepaying, setIsRepaying] = useState(false);
+  const [borrowAmount, setBorrowAmount] = useState('');
+  const [repayAmount, setRepayAmount] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   // Debug logging
@@ -120,6 +124,7 @@ const DashboardPage = () => {
         // Find user's loan if they have one
         let userLoanId = null;
         let userLoanCollateral = '0';
+        let userDebt = '0';
         if (activeLoanIds.length > 0) {
           for (const loanId of activeLoanIds) {
             try {
@@ -146,6 +151,19 @@ const DashboardPage = () => {
                     const collateralResult = await collateralResponse.json();
                     userLoanCollateral = collateralResult.collateral || '0';
                   }
+                  
+                  // Get user debt using s_debtorBorrowed(address) -> 0x6b9e1d93
+                  try {
+                    const debtResponse = await fetch(`http://localhost:4000/api/get-user-debt/${userAddress}`);
+                    if (debtResponse.ok) {
+                      const debtResult = await debtResponse.json();
+                      userDebt = debtResult.userDebt || '0';
+                    }
+                  } catch (err) {
+                    console.log('Could not fetch user debt, using default');
+                    userDebt = '0';
+                  }
+                  
                   break;
                 }
               }
@@ -164,7 +182,8 @@ const DashboardPage = () => {
           totalLoans: totalLoans,
           activeLoanIds: activeLoanIds,
           userLoanId: userLoanId,
-          userLoanCollateral: userLoanCollateral
+          userLoanCollateral: userLoanCollateral,
+          userDebt: userDebt
         });
       } else {
         console.error('DashboardPage - Verification request failed:', verificationResponse.status);
@@ -186,46 +205,47 @@ const DashboardPage = () => {
     setIsRefreshing(false);
   };
 
-  // Handle withdraw collateral
-  const handleWithdraw = async () => {
-    if (!contractData.userLoanId || !contractData.userLoanCollateral) {
-      alert('No tienes un préstamo activo para retirar colateral');
+  // Handle borrow MON
+  const handleBorrow = async () => {
+    if (!borrowAmount || parseFloat(borrowAmount) <= 0) {
+      alert('Por favor ingresa una cantidad válida para pedir prestado');
       return;
     }
 
-    const collateralAmount = (parseFloat(contractData.userLoanCollateral) / 1e18).toFixed(2);
-    const confirmWithdraw = window.confirm(
-      `¿Estás seguro de que quieres retirar ${collateralAmount} MON de colateral?\n\nEsta acción no se puede deshacer.`
+    const confirmBorrow = window.confirm(
+      `¿Estás seguro de que quieres pedir prestado ${borrowAmount} MON?\n\nEsta acción aumentará tu deuda.`
     );
 
-    if (!confirmWithdraw) {
+    if (!confirmBorrow) {
       return;
     }
 
     setIsWithdrawing(true);
     try {
-      const response = await fetch('http://localhost:4000/api/withdraw-collateral', {
+      // Convert MON amount to wei
+      const amountInWei = (parseFloat(borrowAmount) * 1e18).toString();
+      
+      const response = await fetch('http://localhost:4000/api/borrow-mon', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          userAddress: address,
-          amount: contractData.userLoanCollateral,
-          loanId: contractData.userLoanId
+          amount: amountInWei // Amount to borrow
         })
       });
 
       if (response.ok) {
         const result = await response.json();
-        alert(`✅ Colateral retirado exitosamente!\n\nHash de transacción: ${result.txHash}\n\nTu colateral ha sido enviado a tu wallet.`);
-        // Refresh data after successful withdrawal
+        alert(`✅ MON pedido prestado exitosamente!\n\nHash de transacción: ${result.txHash}\n\nTu deuda ha sido aumentada.`);
+              // Clear input and refresh data after successful borrow
+      setBorrowAmount('');
         await fetchContractData();
       } else {
         const error = await response.json();
-        alert(`❌ Error al retirar colateral: ${error.error}`);
+        alert(`❌ Error al pedir prestado: ${error.error}`);
       }
     } catch (error) {
-      console.error('Error withdrawing collateral:', error);
-      alert('❌ Error al retirar colateral. Por favor, intenta de nuevo.');
+      console.error('Error borrowing MON:', error);
+      alert('❌ Error al pedir prestado. Por favor, intenta de nuevo.');
     } finally {
       setIsWithdrawing(false);
     }
@@ -233,8 +253,13 @@ const DashboardPage = () => {
 
   // Handle repay MON
   const handleRepay = async () => {
+    if (!repayAmount || parseFloat(repayAmount) <= 0) {
+      alert('Por favor ingresa una cantidad válida para pagar');
+      return;
+    }
+
     const confirmRepay = window.confirm(
-      '¿Estás seguro de que quieres pagar MON?\n\nEsta acción reducirá tu deuda pendiente.'
+      `¿Estás seguro de que quieres pagar ${repayAmount} MON?\n\nEsta acción reducirá tu deuda pendiente.`
     );
 
     if (!confirmRepay) {
@@ -243,16 +268,23 @@ const DashboardPage = () => {
 
     setIsRepaying(true);
     try {
+      // Convert MON amount to wei
+      const amountInWei = (parseFloat(repayAmount) * 1e18).toString();
+      
       const response = await fetch('http://localhost:4000/api/repay-mon', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userAddress: address })
+        body: JSON.stringify({ 
+          userAddress: address,
+          amount: amountInWei
+        })
       });
 
       if (response.ok) {
         const result = await response.json();
         alert(`✅ MON pagado exitosamente!\n\nHash de transacción: ${result.txHash}\n\nTu deuda ha sido reducida.`);
-        // Refresh data after successful repayment
+        // Clear input and refresh data after successful repayment
+        setRepayAmount('');
         await fetchContractData();
       } else {
         const error = await response.json();
@@ -293,9 +325,10 @@ const DashboardPage = () => {
 
   // Calculate debt data
   const debtData = {
-    total: parseFloat(contractData.maxAmountForLoan) / 1e18, // Convert wei to ETH
+    total: parseFloat(contractData.maxAmountForLoan) / 1e18, // Convert wei to MON
     paid: parseFloat(contractData.currentDebt) / 1e18,
-    remaining: (parseFloat(contractData.maxAmountForLoan) - parseFloat(contractData.currentDebt)) / 1e18
+    remaining: (parseFloat(contractData.maxAmountForLoan) - parseFloat(contractData.currentDebt)) / 1e18,
+    debt: parseFloat(contractData.userDebt) / 1e18 // Convert wei to MON
   };
 
   // Show loading state
@@ -491,17 +524,7 @@ const DashboardPage = () => {
                   </div>
                   <span className="text-gray-700 font-medium">Monto Total</span>
                 </div>
-                <span className="text-xl font-bold text-green-700">{debtData.total.toFixed(2)} ETH</span>
-              </div>
-              
-              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-red-50 to-pink-50 rounded-xl border border-red-100">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-red-100 rounded-lg">
-                    <TrendingDown className="h-5 w-5 text-red-600" />
-                  </div>
-                  <span className="text-gray-700 font-medium">Por Pagar</span>
-                </div>
-                <span className="text-xl font-bold text-red-700">{debtData.remaining.toFixed(2)} ETH</span>
+                <span className="text-xl font-bold text-green-700">{debtData.total.toFixed(2)} MON</span>
               </div>
               
               <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
@@ -509,9 +532,21 @@ const DashboardPage = () => {
                   <div className="p-2 bg-blue-100 rounded-lg">
                     <TrendingUp className="h-5 w-5 text-blue-600" />
                   </div>
-                  <span className="text-gray-700 font-medium">Pagado</span>
+                  <span className="text-gray-700 font-medium">Monto Financiado</span>
                 </div>
-                <span className="text-xl font-bold text-blue-700">{debtData.paid.toFixed(2)} ETH</span>
+                <span className="text-xl font-bold text-blue-700">{debtData.paid.toFixed(2)} MON</span>
+              </div>
+              
+              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-red-50 to-pink-50 rounded-xl border border-red-100">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-red-100 rounded-lg">
+                    <TrendingDown className="h-5 w-5 text-red-600" />
+                  </div>
+                  <span className="text-gray-700 font-medium">Deuda Pendiente</span>
+                </div>
+                <span className="text-xl font-bold text-red-700">
+                  {(parseFloat(contractData.userDebt) / 1e18).toFixed(4)} MON
+                </span>
               </div>
             </div>
           </Card>
@@ -541,7 +576,7 @@ const DashboardPage = () => {
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-gray-700">Colateral</span>
                     <span className="text-lg font-bold text-purple-700">
-                      {(parseFloat(contractData.userLoanCollateral) / 1e18).toFixed(2)} ETH
+                      {(parseFloat(contractData.userLoanCollateral) / 1e18).toFixed(2)} MON
                     </span>
                   </div>
                 </div>
@@ -556,36 +591,71 @@ const DashboardPage = () => {
                       </div>
                     </div>
                     
-                    {/* Action Buttons */}
-                    <div className="grid grid-cols-2 gap-3 pt-3 border-t border-green-200">
-                      <Button 
-                        onClick={handleWithdraw}
-                        variant="outline"
-                        disabled={isWithdrawing}
-                        size="sm"
-                        className="w-full border-gray-300 hover:border-red-400 hover:bg-red-50 text-sm"
-                      >
-                        {isWithdrawing ? (
-                          <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                        ) : (
-                          <ArrowUpCircle className="h-3 w-3 mr-2" />
-                        )}
-                        {isWithdrawing ? 'Retirando...' : 'Retirar Colateral'}
-                      </Button>
-                      <Button 
-                        onClick={handleRepay}
-                        variant="outline"
-                        disabled={isRepaying}
-                        size="sm"
-                        className="w-full border-gray-300 hover:border-green-400 hover:bg-green-50 text-sm"
-                      >
-                        {isRepaying ? (
-                          <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                        ) : (
-                          <ArrowDownCircle className="h-3 w-3 mr-2" />
-                        )}
-                        {isRepaying ? 'Pagando...' : 'Pagar MON'}
-                      </Button>
+                    {/* Action Buttons with Inputs */}
+                    <div className="space-y-3 pt-3 border-t border-green-200">
+                      {/* Retirar Colateral Section */}
+                      <div className="space-y-2">
+                        <label className="block text-xs font-medium text-gray-700">
+                          Cantidad a Pedir Prestado (MON)
+                        </label>
+                        <div className="flex space-x-2">
+                          <Input
+                            type="number"
+                            placeholder="0.0"
+                            step="0.01"
+                            min="0"
+                            className="flex-1 h-9 text-sm"
+                            value={borrowAmount}
+                            onChange={(e) => setBorrowAmount(e.target.value)}
+                          />
+                          <Button 
+                            onClick={handleBorrow}
+                            variant="outline"
+                            disabled={isWithdrawing || !borrowAmount || parseFloat(borrowAmount) <= 0}
+                            size="sm"
+                            className="border-gray-300 hover:border-blue-400 hover:bg-blue-50 text-sm px-3"
+                          >
+                            {isWithdrawing ? (
+                              <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                            ) : (
+                              <ArrowUpCircle className="h-3 w-3 mr-2" />
+                            )}
+                            {isWithdrawing ? 'Pidiendo...' : 'Pedir Prestado'}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Pagar MON Section */}
+                      <div className="space-y-2">
+                        <label className="block text-xs font-medium text-gray-700">
+                          Cantidad a Pagar (MON)
+                        </label>
+                        <div className="flex space-x-2">
+                          <Input
+                            type="number"
+                            placeholder="0.0"
+                            step="0.01"
+                            min="0"
+                            className="flex-1 h-9 text-sm"
+                            value={repayAmount}
+                            onChange={(e) => setRepayAmount(e.target.value)}
+                          />
+                          <Button 
+                            onClick={handleRepay}
+                            variant="outline"
+                            disabled={isRepaying || !repayAmount || parseFloat(repayAmount) <= 0}
+                            size="sm"
+                            className="border-gray-300 hover:border-green-400 hover:bg-green-50 text-sm px-3"
+                          >
+                            {isRepaying ? (
+                              <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                            ) : (
+                              <ArrowDownCircle className="h-3 w-3 mr-2" />
+                            )}
+                            {isRepaying ? 'Pagando...' : 'Pagar'}
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

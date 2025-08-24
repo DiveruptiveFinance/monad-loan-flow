@@ -1,4 +1,4 @@
-include .env
+include contract-config.env
 
 .PHONY: all clean build format deploy deploy-local deploy-monad test help
 

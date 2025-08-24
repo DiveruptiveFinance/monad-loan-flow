@@ -14,7 +14,7 @@ interface LoanData {
   collateral: string;
   isActive: boolean;
   requestAmount?: string; // Amount requested in the loan request
-  hasLoanRequest: boolean; // Whether this loan has an active request
+  hasLoanRequest: boolean; // WhMONer this loan has an active request
 }
 
 interface BorrowerCardProps {
@@ -38,9 +38,9 @@ const BorrowerCard = ({
   const navigate = useNavigate();
   
   // Convert wei to MON for display
-  const amountInEth = parseFloat(loanData.amount) / 1e18;
-  const collateralInEth = parseFloat(loanData.collateral) / 1e18;
-  const requestAmountInEth = parseFloat(loanData.requestAmount || '0') / 1e18;
+  const amountInMON = parseFloat(loanData.amount) / 1e18;
+  const collateralInMON = parseFloat(loanData.collateral) / 1e18;
+  const requestAmountInMON = parseFloat(loanData.requestAmount || '0') / 1e18;
   
   // Generate avatar based on address
   const generateAvatar = (address: string) => {
@@ -50,7 +50,7 @@ const BorrowerCard = ({
   };
 
   // Calculate funding percentage (simplified - could be enhanced with real funding data)
-  const fundingPercentage = Math.min(100, Math.floor((collateralInEth / amountInEth) * 100));
+  const fundingPercentage = Math.min(100, Math.floor((collateralInMON / amountInMON) * 100));
 
   return (
     <Card className="p-4 bg-card shadow-sm rounded-xl border border-border/50 hover:shadow-md transition-all duration-300">
@@ -66,7 +66,7 @@ const BorrowerCard = ({
                 {loanData.borrower.slice(0, 6)}...{loanData.borrower.slice(-4)}
               </h3>
               <p className="text-sm text-muted-foreground truncate">
-                {amountInEth.toFixed(2)} MON - Préstamo #{loanData.loanId}
+                {amountInMON.toFixed(2)} MON - Préstamo #{loanData.loanId}
               </p>
             </div>
           </div>
@@ -81,7 +81,7 @@ const BorrowerCard = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <TrendingUp size={14} className="text-monad-purple shrink-0" />
-              <span className="text-sm font-medium">Colateral: {collateralInEth.toFixed(2)} ETH</span>
+              <span className="text-sm font-medium">Colateral: {collateralInMON.toFixed(2)} MON</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1">
@@ -107,7 +107,7 @@ const BorrowerCard = ({
               <div className="mt-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-blue-700">Monto Solicitado:</span>
-                  <span className="font-medium text-blue-700">{requestAmountInEth.toFixed(2)} ETH</span>
+                  <span className="font-medium text-blue-700">{requestAmountInMON.toFixed(2)} MON</span>
                 </div>
                 <div className="flex justify-between text-sm mt-1">
                   <span className="text-blue-700">Estado:</span>
@@ -132,13 +132,8 @@ const BorrowerCard = ({
           {/* Input for amount */}
           <div className="space-y-2">
             <label className="block text-xs font-medium text-muted-foreground">
-              Cantidad en ETH
+              Cantidad en MON
             </label>
-            <p className="text-xs text-muted-foreground">
-              Para Fondear: multiplicador de 10 ETH (ej: 1 = 10 ETH)
-              <br />
-              Para Retirar: cantidad directa en ETH
-            </p>
             <Input 
               type="number"
               placeholder="0.0"
@@ -326,10 +321,10 @@ const BorrowersListPage = () => {
     setProcessingLoanId(loanData.loanId);
 
     try {
-      // The input amount is a multiplier for 10 ETH (10e18 wei)
-      // Example: input "1" = 1 * 10e18 = 10 ETH in wei
-      const amountInWei = (parseFloat(inputAmount) * 10 * 1e18).toString();
-      console.log(`Funding loan ${loanData.loanId} with amount: ${amountInWei} wei (${inputAmount} * 10 ETH)`);
+      // The input amount is now a direct MON amount (no multiplier)
+      // Example: input "1" = 1 * 1e18 = 1 MON in wei
+      const amountInWei = (parseFloat(inputAmount) * 1e18).toString();
+      console.log(`Funding loan ${loanData.loanId} with amount: ${amountInWei} wei (${inputAmount} MON)`);
       
       // Call the smart contract function addCollateralForCrowfundedLoan(uint256)
       // Function selector: 0x5886cb68
@@ -370,9 +365,9 @@ const BorrowersListPage = () => {
     setProcessingLoanId(loanData.loanId);
 
     try {
-      // For withdraw, the input amount is directly in ETH, convert to wei
+      // For withdraw, the input amount is directly in MON, convert to wei
       const amountInWei = (parseFloat(inputAmount) * 1e18).toString();
-      console.log(`Withdrawing from loan ${loanData.loanId} with amount: ${amountInWei} wei (${inputAmount} ETH)`);
+      console.log(`Withdrawing from loan ${loanData.loanId} with amount: ${amountInWei} wei (${inputAmount} MON)`);
       
       // Call the smart contract function withdrawForCrowfundedLoan(uint256,uint256)
       // Function selector: 0x1e7b5766
@@ -588,12 +583,12 @@ const BorrowersListPage = () => {
                       </td>
                       <td className="py-2">
                         <span className="font-medium">
-                          {(parseFloat(loan.amount) / 1e18).toFixed(2)} ETH
+                          {(parseFloat(loan.amount) / 1e18).toFixed(2)} MON
                         </span>
                       </td>
                       <td className="py-2">
                         <span className="font-medium">
-                          {(parseFloat(loan.collateral) / 1e18).toFixed(2)} ETH
+                          {(parseFloat(loan.collateral) / 1e18).toFixed(2)} MON
                         </span>
                       </td>
                       <td className="py-2">

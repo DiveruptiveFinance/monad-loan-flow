@@ -11,12 +11,10 @@ interface DebtSectionProps {
 
 const DebtSection = ({ data }: DebtSectionProps) => {
   const total = data.porPagar + data.pagado;
-  const porPagarPct = ((data.porPagar / total) * 100).toFixed(1);
   const pagadoPct = ((data.pagado / total) * 100).toFixed(1);
 
   const chartData = [
-    { name: 'Por pagar', value: data.porPagar, percentage: porPagarPct },
-    { name: 'Pagado', value: data.pagado, percentage: pagadoPct }
+    { name: 'Monto Financiado', value: data.pagado, percentage: pagadoPct }
   ];
 
   const COLORS = ['hsl(var(--monad-purple))', 'hsl(var(--muted))'];
