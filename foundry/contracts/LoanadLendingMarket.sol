@@ -28,7 +28,7 @@ contract LoanadLendingMarket is Ownable {
     mapping(uint256 => uint256) public s_collateralForLoanId; // Loan id -> total collateral amount
     mapping(address => uint256) public s_maximumAmountForLoan; // User address -> maximum amount that can be borrowed
     mapping(address => uint256) public s_debtorBorrowed; // User's borrowed MON balance
-
+    mapping(address => bool) public s_verifiedUsers; // User address -> whether they're verified
     // lender side mappings
     mapping(address => uint256) public s_lenderCollateral; // Lender's collateral balance
     mapping(address => uint256) public s_lenderCrowfundedLoanId; // lender address -> crowfunded loan id that they're funding
@@ -257,6 +257,10 @@ contract LoanadLendingMarket is Ownable {
         return newAmount;
     }
 
+    function verifyUser(address user) public onlyOwner {
+        s_verifiedUsers[user] = true;
+    }
+
     ////////////////////////////
     ///// GETTER FUNCTIONS//////
     ////////////////////////////
@@ -274,4 +278,9 @@ contract LoanadLendingMarket is Ownable {
     function getLoanBorrower(uint256 loanId) public view returns (address) {
         return s_crowfundedLoanId[loanId];
     }
+
+    function getVerifiedUser(address user) public view returns (bool) {
+        return s_verifiedUsers[user];
+    }
+
 }
