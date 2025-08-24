@@ -1,0 +1,52 @@
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+
+const LoginPage = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const userType = location.state?.type; // 'loan' or 'invest'
+
+  const handleWalletLogin = () => {
+    if (userType === 'loan') {
+      navigate('/loan-form');
+    } else {
+      navigate('/borrowers-list');
+    }
+  };
+
+  const handleSocialLogin = () => {
+    if (userType === 'loan') {
+      navigate('/loan-form');
+    } else {
+      navigate('/borrowers-list');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 pt-20">
+      <div className="text-center max-w-md w-full space-y-8">
+        <h2 className="text-3xl font-montserrat font-bold text-foreground">
+          Conéctate para continuar
+        </h2>
+        
+        <div className="space-y-4">
+          <Button 
+            onClick={handleWalletLogin}
+            className="w-full bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-6 rounded-xl text-lg transition-all duration-300"
+          >
+            Entrar con Wallet
+          </Button>
+          
+          <Button 
+            onClick={handleSocialLogin}
+            className="w-full bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-6 rounded-xl text-lg transition-all duration-300"
+          >
+            Entrar con Google / Email
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default LoginPage;
