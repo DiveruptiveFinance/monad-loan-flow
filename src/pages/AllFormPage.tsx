@@ -9,6 +9,8 @@ const AllFormPage = () => {
   const [documentUploaded, setDocumentUploaded] = useState(false);
   const [kycCompleted, setKycCompleted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Check if verification has already been completed
   useEffect(() => {
@@ -64,13 +66,66 @@ const AllFormPage = () => {
     }));
   };
 
-  const handleContinue = () => {
-    // Save final verification status
-    localStorage.setItem('loanad-verification', JSON.stringify({
-      documentUploaded: true,
-      kycCompleted: true
-    }));
-    navigate('/dashboard');
+  const handleContinue = async () => {
+    if (isSubmitting) return; // Prevent double submission
+    
+    setIsSubmitting(true);
+    setMessage(null); // Clear previous messages
+    try {
+      // Get the connected wallet address
+      const ethereum = (window as any).ethereum;
+      if (!ethereum) {
+        console.error('No ethereum provider found');
+        return;
+      }
+
+      const accounts = await ethereum.request({ method: 'eth_accounts' });
+      if (!accounts || accounts.length === 0) {
+        console.error('No wallet connected');
+        return;
+      }
+
+      const userAddress = accounts[0];
+      console.log('User address:', userAddress);
+
+      // Call backend API to assign maximum amount for loan
+      const response = await fetch('http://localhost:4000/api/init-loan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userAddress: userAddress
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Loan initialization result:', result);
+
+      // Show success message
+      const shortHash = `${result.txHash.slice(0, 8)}...${result.txHash.slice(-6)}`;
+      setMessage({ type: 'success', text: `Verificación completada! Hash: ${shortHash}` });
+      
+      // Save final verification status
+      localStorage.setItem('loanad-verification', JSON.stringify({
+        documentUploaded: true,
+        kycCompleted: true
+      }));
+
+      // Wait a bit to show success message, then navigate
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
+    } catch (error) {
+      console.error('Error initializing loan:', error);
+      setMessage({ type: 'error', text: 'Error al inicializar el préstamo. Intenta de nuevo.' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Show loading while checking verification status
@@ -102,6 +157,16 @@ const AllFormPage = () => {
             </p>
           </div>
           
+          {message && (
+            <div className={`p-4 rounded-lg text-sm font-medium ${
+              message.type === 'success' 
+                ? 'bg-green-100 text-green-800 border border-green-200' 
+                : 'bg-red-100 text-red-800 border border-red-200'
+            }`}>
+              {message.text}
+            </div>
+          )}
+          
           <div className="space-y-4">
             <Button 
               onClick={handleDocumentUpload}
@@ -129,14 +194,21 @@ const AllFormPage = () => {
 
             <Button 
               onClick={handleContinue}
-              disabled={!documentUploaded || !kycCompleted}
+              disabled={!documentUploaded || !kycCompleted || isSubmitting}
               className={`w-full font-montserrat font-bold py-6 rounded-xl text-lg transition-all duration-300 mt-6 ${
-                documentUploaded && kycCompleted
+                documentUploaded && kycCompleted && !isSubmitting
                   ? 'bg-monad-purple hover:bg-monad-purple/90 text-white cursor-pointer'
                   : 'bg-gray-400 text-gray-200 cursor-not-allowed'
               }`}
             >
-              Continuar
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  Procesando...
+                </>
+              ) : (
+                'Continuar'
+              )}
             </Button>
           </div>
         </Card>

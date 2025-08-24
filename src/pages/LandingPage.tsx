@@ -109,9 +109,9 @@ const LandingPage = () => {
                 <div className="border border-monad-purple rounded-lg p-3 bg-card/50">
                   <div className="flex items-center space-x-2">
                     <div className="w-2 h-2 bg-monad-purple rounded-full animate-pulse"></div>
-                    <span className="text-sm text-foreground font-mono">
-                      {walletAddress ? `0x${walletAddress.slice(6, 6)}...${walletAddress.slice(-4)}` : 'Connecting...'}
-                    </span>
+                                          <span className="text-sm text-foreground font-mono">
+                        {walletAddress ? `0x${walletAddress.slice(2, 6)}...${walletAddress.slice(-4)}` : 'Connecting...'}
+                      </span>
                   </div>
                 </div>
                 
