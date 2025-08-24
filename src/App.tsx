@@ -3,9 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import TopBar from "./components/TopBar";
+import BottomNav from "./components/BottomNav";
 import LandingPage from "./pages/LandingPage";
-import LoginPage from "./pages/LoginPage";
 import AllFormPage from "./pages/AllFormPage";
 import LoanFormPage from "./pages/LoanFormPage";
 import ConfirmationsPage from "./pages/ConfirmationsPage";
@@ -24,10 +23,8 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <TopBar />
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
           <Route path="/all-form" element={<AllFormPage />} />
           <Route path="/loan-form" element={<LoanFormPage />} />
           <Route path="/confirmations" element={<ConfirmationsPage />} />
@@ -39,6 +36,7 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <BottomNav />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

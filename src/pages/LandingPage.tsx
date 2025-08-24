@@ -6,11 +6,11 @@ const LandingPage = () => {
   const navigate = useNavigate();
 
   const handleLoanClick = () => {
-    navigate('/login', { state: { type: 'loan' } });
+    navigate('/all-form', { state: { type: 'loan' } });
   };
 
   const handleInvestClick = () => {
-    navigate('/login', { state: { type: 'invest' } });
+    navigate('/all-form', { state: { type: 'invest' } });
   };
 
   return (
@@ -32,7 +32,7 @@ const LandingPage = () => {
         
         <div className="space-y-4">
           <Button 
-            onClick={() => navigate('/login')}
+            onClick={() => navigate('/all-form')}
             className="w-full bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-6 rounded-xl text-lg transition-all duration-300"
           >
             Iniciar

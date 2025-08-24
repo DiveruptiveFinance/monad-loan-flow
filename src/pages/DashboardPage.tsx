@@ -75,7 +75,7 @@ const DashboardPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background px-4 pt-24 pb-8">
+    <div className="min-h-screen bg-background px-4 pt-8 pb-24">
       <div className="max-w-md mx-auto space-y-8">
         <div className="text-center">
           <img 
@@ -248,9 +248,9 @@ const DashboardPage = () => {
 
         <Button 
           onClick={() => navigate('/')}
-          className="w-full bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-6 rounded-xl text-lg transition-all duration-300"
+          className="w-full bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-6 rounded-xl text-lg transition-all duration-300 mb-20"
         >
-          Regresar a Inicio
+          Cerrar Sesión
           <ArrowRight className="ml-2" size={20} />
         </Button>
       </div>

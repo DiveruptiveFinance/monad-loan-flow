@@ -118,7 +118,7 @@ const BorrowersListPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background px-4 pt-24 pb-8">
+    <div className="min-h-screen bg-background px-4 pt-8 pb-24">
       <div className="max-w-md mx-auto">
         <div className="mb-6">
           <h2 className="text-2xl font-montserrat font-bold text-foreground mb-2">

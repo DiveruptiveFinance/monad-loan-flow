@@ -22,7 +22,7 @@ const AllFormPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background px-4 pt-24 pb-8">
+    <div className="min-h-screen bg-background px-4 pt-8 pb-24">
       <div className="max-w-md mx-auto">
         <Card className="p-6 space-y-6 bg-card rounded-xl shadow-sm">
           <div className="text-center space-y-4">
