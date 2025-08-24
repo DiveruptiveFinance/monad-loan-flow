@@ -27,18 +27,10 @@ const LandingPage = () => {
         
         <div className="space-y-4">
           <Button 
-            onClick={handleLoanClick}
+            onClick={() => navigate('/login')}
             className="w-full bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-6 rounded-xl text-lg transition-all duration-300"
           >
-            Préstamo
-            <ArrowRight className="ml-2" size={20} />
-          </Button>
-          
-          <Button 
-            onClick={handleInvestClick}
-            className="w-full bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-6 rounded-xl text-lg transition-all duration-300"
-          >
-            Invertir
+            Iniciar
             <ArrowRight className="ml-2" size={20} />
           </Button>
         </div>
