@@ -17,6 +17,11 @@ const LandingPage = () => {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
       <div className="text-center max-w-md w-full space-y-8">
         <div className="space-y-4">
+          <img 
+            src="/lovable-uploads/b9433d6b-951c-4718-8950-f24aab2e29cf.png" 
+            alt="LOANAD Logo" 
+            className="w-16 h-16 mx-auto mb-2"
+          />
           <h1 className="text-5xl font-montserrat font-bold text-foreground">
             LOANAD
           </h1>

@@ -18,7 +18,7 @@ const AllFormPage = () => {
   };
 
   const handleContinue = () => {
-    navigate('/loan-form');
+    navigate('/dashboard');
   };
 
   return (

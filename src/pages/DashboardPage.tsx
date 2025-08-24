@@ -78,6 +78,11 @@ const DashboardPage = () => {
     <div className="min-h-screen bg-background px-4 pt-24 pb-8">
       <div className="max-w-md mx-auto space-y-8">
         <div className="text-center">
+          <img 
+            src="/lovable-uploads/b9433d6b-951c-4718-8950-f24aab2e29cf.png" 
+            alt="LOANAD Logo" 
+            className="w-12 h-12 mx-auto mb-2"
+          />
           <h1 className="text-3xl font-montserrat font-bold text-foreground mb-2">
             Dashboard LOANAD
           </h1>
