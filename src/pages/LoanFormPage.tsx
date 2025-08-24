@@ -11,6 +11,7 @@ const LoanFormPage = () => {
   const navigate = useNavigate();
   const [interestRate, setInterestRate] = useState([15]);
   const [documentUploaded, setDocumentUploaded] = useState(false);
+  const [kycCompleted, setKycCompleted] = useState(false);
 
   const handleContinue = () => {
     navigate('/confirmations');
@@ -18,6 +19,10 @@ const LoanFormPage = () => {
 
   const handleDocumentUpload = () => {
     setDocumentUploaded(true);
+  };
+
+  const handleKycComplete = () => {
+    setKycCompleted(true);
   };
 
   return (
@@ -98,19 +103,26 @@ const LoanFormPage = () => {
 
             <Button 
               onClick={handleDocumentUpload}
-              variant={documentUploaded ? "secondary" : "outline"}
-              className="w-full rounded-lg py-6"
+              className={`w-full rounded-lg py-6 transition-all duration-300 ${
+                documentUploaded 
+                  ? 'bg-green-500 hover:bg-green-600 text-white border-green-500' 
+                  : 'border-border bg-background hover:bg-muted'
+              }`}
             >
               <Paperclip className="mr-2" size={20} />
               {documentUploaded ? "Comprobante subido" : "Sube tu comprobante"}
             </Button>
 
             <Button 
-              variant="outline"
-              className="w-full rounded-lg py-6"
+              onClick={handleKycComplete}
+              className={`w-full rounded-lg py-6 transition-all duration-300 ${
+                kycCompleted 
+                  ? 'bg-green-500 hover:bg-green-600 text-white border-green-500' 
+                  : 'border-border bg-background hover:bg-muted'
+              }`}
             >
               <User className="mr-2" size={20} />
-              Realiza tu KYC
+              {kycCompleted ? "KYC completado" : "Realiza tu KYC"}
             </Button>
 
             <Button 
