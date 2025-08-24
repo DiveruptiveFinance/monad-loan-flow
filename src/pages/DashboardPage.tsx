@@ -177,16 +177,16 @@ const DashboardPage = () => {
             )}
           
           {/* Botones Pagar y Retirar */}
-          <div className="mt-4 space-y-2">
+          <div className="mt-4 grid grid-cols-2 gap-2">
             <Button 
               onClick={() => navigate('/payment')}
-              className="w-full bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-3 rounded-xl text-base transition-all duration-300"
+              className="bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-2 rounded-xl text-base transition-all duration-300"
             >
               💳 Pagar
             </Button>
             <Button 
               onClick={() => navigate('/withdrawal')}
-              className="w-full bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-3 rounded-xl text-base transition-all duration-300"
+              className="bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-2 rounded-xl text-base transition-all duration-300"
             >
               💰 Retirar
             </Button>
@@ -268,13 +268,13 @@ const DashboardPage = () => {
           <div className="mt-4 grid grid-cols-2 gap-2">
             <Button 
               onClick={() => navigate('/claim')}
-              className="bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-3 rounded-xl text-base transition-all duration-300"
+              className="bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-2 rounded-xl text-base transition-all duration-300"
             >
               💎 Reclamar
             </Button>
             <Button 
               onClick={() => navigate('/reinvest')}
-              className="bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-3 rounded-xl text-base transition-all duration-300"
+              className="bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-2 rounded-xl text-base transition-all duration-300"
             >
               🔄 Reinvertir
             </Button>
