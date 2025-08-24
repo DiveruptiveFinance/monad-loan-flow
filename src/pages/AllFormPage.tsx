@@ -16,19 +16,25 @@ const AllFormPage = () => {
       try {
         // Check localStorage for existing verification
         const storedVerification = localStorage.getItem('loanad-verification');
+        console.log('Checking verification status:', storedVerification);
         
         if (storedVerification) {
           const verification = JSON.parse(storedVerification);
+          console.log('Parsed verification data:', verification);
           
           if (verification.documentUploaded && verification.kycCompleted) {
-            // Verification already completed, redirect to dashboard
-            navigate('/dashboard');
-            return;
+            console.log('Verification complete, but waiting for user to click continue');
+            // Don't redirect automatically - let user click continue
+            setDocumentUploaded(true);
+            setKycCompleted(true);
           } else {
+            console.log('Partial verification, restoring state');
             // Partial verification, restore state
             setDocumentUploaded(verification.documentUploaded || false);
             setKycCompleted(verification.kycCompleted || false);
           }
+        } else {
+          console.log('No verification data found');
         }
       } catch (error) {
         console.error('Error checking verification status:', error);
@@ -78,6 +84,8 @@ const AllFormPage = () => {
       </div>
     );
   }
+
+
 
   return (
     <div className="min-h-screen bg-background px-4 pt-8 pb-24">

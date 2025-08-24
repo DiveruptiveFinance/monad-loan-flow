@@ -49,12 +49,33 @@ const LandingPage = () => {
     };
   }, []);
 
-  const handleLoanClick = () => {
-    navigate('/all-form', { state: { type: 'loan' } });
-  };
-
-  const handleInvestClick = () => {
-    navigate('/all-form', { state: { type: 'invest' } });
+  const handleContinue = () => {
+    // Check if verification has already been completed
+    const storedVerification = localStorage.getItem('loanad-verification');
+    console.log('LandingPage - Checking verification status:', storedVerification);
+    
+    if (storedVerification) {
+      try {
+        const verification = JSON.parse(storedVerification);
+        console.log('LandingPage - Parsed verification data:', verification);
+        
+        if (verification.documentUploaded && verification.kycCompleted) {
+          console.log('LandingPage - Verification complete, going to dashboard');
+          // Verification already completed, go directly to dashboard
+          navigate('/dashboard');
+          return;
+        } else {
+          console.log('LandingPage - Verification incomplete, going to verification page');
+        }
+      } catch (error) {
+        console.error('LandingPage - Error parsing verification data:', error);
+      }
+    } else {
+      console.log('LandingPage - No verification data found, going to verification page');
+    }
+    
+    // If no verification or incomplete, go to verification page
+    navigate('/all-form');
   };
 
   return (
@@ -78,7 +99,7 @@ const LandingPage = () => {
           <div className="space-y-4">
             {isWalletConnected && (
               <Button 
-                onClick={() => navigate('/all-form')}
+                onClick={handleContinue}
                 className="w-full bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-6 rounded-xl text-lg transition-all duration-300"
               >
                 Continuar
