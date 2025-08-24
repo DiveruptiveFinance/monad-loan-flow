@@ -38,7 +38,8 @@ export default {
 				},
 				muted: {
 					DEFAULT: 'hsl(var(--muted))',
-					foreground: 'hsl(var(--muted-foreground))'
+					foreground: 'hsl(var(--muted-foreground))',
+					text: 'hsl(var(--muted-text))'
 				},
 				accent: {
 					DEFAULT: 'hsl(var(--accent))',
@@ -51,6 +52,11 @@ export default {
 				card: {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
+				},
+				'monad-purple': {
+					DEFAULT: 'hsl(var(--monad-purple))',
+					light: 'hsl(var(--monad-purple-light))',
+					dark: 'hsl(var(--monad-purple-dark))'
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
