@@ -43,7 +43,7 @@ const LoanApprovedPage = () => {
         
         <div className="space-y-3">
           <Button 
-            onClick={() => navigate('/borrower-detail')}
+            onClick={() => navigate('/borrower-detail2')}
             className="w-full bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-6 rounded-xl text-lg"
           >
             Ver solicitud

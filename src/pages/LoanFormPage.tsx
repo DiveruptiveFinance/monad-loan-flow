@@ -83,19 +83,6 @@ const LoanFormPage = () => {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Tasa de interés dispuesto a pagar: {interestRate[0]}%
-              </label>
-              <Slider
-                value={interestRate}
-                onValueChange={setInterestRate}
-                max={35}
-                min={0}
-                step={0.5}
-                className="w-full"
-              />
-            </div>
 
             <Button
               onClick={handleContinue}

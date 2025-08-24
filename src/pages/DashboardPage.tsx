@@ -175,6 +175,16 @@ const DashboardPage = () => {
                 </ResponsiveContainer>
               </div>
             )}
+          
+          {/* Botón Pagar */}
+          <div className="mt-4">
+            <Button 
+              onClick={() => navigate('/payment')}
+              className="w-full bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-4 rounded-xl text-lg transition-all duration-300"
+            >
+              💳 Pagar
+            </Button>
+          </div>
         </Card>
 
         {/* Sección Inversiones */}
@@ -248,33 +258,14 @@ const DashboardPage = () => {
             )}
           </div>
 
-          <div className="h-48">
-            <h4 className="text-sm font-montserrat font-bold text-foreground mb-3">
-              Rendimiento proyectado
-            </h4>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={lineData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis 
-                  dataKey="month" 
-                  tick={{ fontSize: 12 }}
-                  stroke="hsl(var(--muted-foreground))"
-                />
-                <YAxis 
-                  tick={{ fontSize: 12 }}
-                  stroke="hsl(var(--muted-foreground))"
-                />
-                <Tooltip content={<LineTooltip />} />
-                <Line 
-                  type="monotone" 
-                  dataKey="return" 
-                  stroke="hsl(var(--monad-purple))" 
-                  strokeWidth={3}
-                  dot={{ fill: 'hsl(var(--monad-purple))', strokeWidth: 2, r: 4 }}
-                  activeDot={{ r: 6, stroke: 'hsl(var(--monad-purple))', strokeWidth: 2 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+          {/* Botón Retirar */}
+          <div className="mt-4">
+            <Button 
+              onClick={() => navigate('/withdrawal')}
+              className="w-full bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-4 rounded-xl text-lg transition-all duration-300"
+            >
+              💰 Retirar
+            </Button>
           </div>
         </Card>
 
