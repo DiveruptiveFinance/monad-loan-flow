@@ -5,6 +5,8 @@
 import { useAppKitNetwork, useAppKitAccount  } from '@reown/appkit/react'
 import { useReadContract, useWriteContract } from 'wagmi'
 import { useEffect } from 'react'
+import { monadTestnet } from '@reown/appkit/networks'
+
 const storageABI = [
 	{
 		"inputs": [],
@@ -37,7 +39,7 @@ const storageABI = [
 const storageSC = "0xEe6D291CC60d7CeD6627fA4cd8506912245c8cA4" 
 
 export const SmartContractActionButtonList = () => {
-    const { isConnected } = useAppKitAccount() // AppKit hook to get the address and check if the user is connected
+    const { isConnected, address } = useAppKitAccount() // AppKit hook to get the address and check if the user is connected
     const { chainId } = useAppKitNetwork()
     const { writeContract, isSuccess } = useWriteContract()
     const readContract = useReadContract({
@@ -68,6 +70,8 @@ export const SmartContractActionButtonList = () => {
           abi: storageABI,
           functionName: 'store',
           args: [123n],
+          chain: monadTestnet,
+          account: address as `0x${string}`,
         })
     }
 
