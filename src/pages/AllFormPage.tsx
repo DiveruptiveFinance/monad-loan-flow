@@ -88,7 +88,34 @@ const AllFormPage = () => {
       const userAddress = accounts[0];
       console.log('User address:', userAddress);
 
-      // Call backend API to assign maximum amount for loan
+      // First, check if user is already verified
+      const verificationResponse = await fetch('http://localhost:4000/api/check-verification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userAddress: userAddress
+        }),
+      });
+
+      if (!verificationResponse.ok) {
+        throw new Error(`HTTP error! status: ${verificationResponse.status}`);
+      }
+
+      const verificationResult = await verificationResponse.json();
+      console.log('Verification check result:', verificationResult);
+
+      if (verificationResult.isVerified) {
+        // User is already verified, skip to dashboard
+        setMessage({ type: 'success', text: 'Usuario ya verificado. Redirigiendo...' });
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1500);
+        return;
+      }
+
+      // User is not verified, proceed with verification and loan initialization
       const response = await fetch('http://localhost:4000/api/init-loan', {
         method: 'POST',
         headers: {

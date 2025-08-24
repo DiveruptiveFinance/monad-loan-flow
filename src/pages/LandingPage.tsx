@@ -55,33 +55,48 @@ const LandingPage = () => {
     };
   }, []);
 
-  const handleContinue = () => {
-    // Check if verification has already been completed
-    const storedVerification = localStorage.getItem('loanad-verification');
-    console.log('LandingPage - Checking verification status:', storedVerification);
-    
-    if (storedVerification) {
-      try {
-        const verification = JSON.parse(storedVerification);
-        console.log('LandingPage - Parsed verification data:', verification);
-        
-        if (verification.documentUploaded && verification.kycCompleted) {
-          console.log('LandingPage - Verification complete, going to dashboard');
-          // Verification already completed, go directly to dashboard
-          navigate('/dashboard');
-          return;
-        } else {
-          console.log('LandingPage - Verification incomplete, going to verification page');
-        }
-      } catch (error) {
-        console.error('LandingPage - Error parsing verification data:', error);
-      }
-    } else {
-      console.log('LandingPage - No verification data found, going to verification page');
+  const handleContinue = async () => {
+    if (!isWalletConnected || !walletAddress) {
+      console.error('No wallet connected');
+      return;
     }
-    
-    // If no verification or incomplete, go to verification page
-    navigate('/all-form');
+
+    try {
+      console.log('LandingPage - Checking verification status for:', walletAddress);
+      
+      // Call backend API to check if user is already verified on-chain
+      const response = await fetch('http://localhost:4000/api/check-verification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userAddress: walletAddress
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('LandingPage - Verification check result:', result);
+
+      if (result.isVerified) {
+        console.log('LandingPage - User already verified on-chain, going to dashboard');
+        // User is already verified on-chain, go directly to dashboard
+        navigate('/dashboard');
+        return;
+      } else {
+        console.log('LandingPage - User not verified on-chain, going to verification page');
+        // User is not verified, go to verification page
+        navigate('/all-form');
+      }
+    } catch (error) {
+      console.error('LandingPage - Error checking verification:', error);
+      // On error, fallback to verification page
+      navigate('/all-form');
+    }
   };
 
   return (
