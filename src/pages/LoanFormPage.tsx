@@ -103,10 +103,10 @@ const LoanFormPage = () => {
 
             <Button 
               onClick={handleDocumentUpload}
-              className={`w-full rounded-lg py-6 transition-all duration-300 ${
+              className={`w-full rounded-lg py-6 transition-all duration-300 font-montserrat font-bold ${
                 documentUploaded 
                   ? 'bg-green-500 hover:bg-green-600 text-white border-green-500' 
-                  : 'border-border bg-background hover:bg-muted'
+                  : 'bg-muted hover:bg-muted/80 text-foreground border border-border'
               }`}
             >
               <Paperclip className="mr-2" size={20} />
@@ -115,10 +115,10 @@ const LoanFormPage = () => {
 
             <Button 
               onClick={handleKycComplete}
-              className={`w-full rounded-lg py-6 transition-all duration-300 ${
+              className={`w-full rounded-lg py-6 transition-all duration-300 font-montserrat font-bold ${
                 kycCompleted 
                   ? 'bg-green-500 hover:bg-green-600 text-white border-green-500' 
-                  : 'border-border bg-background hover:bg-muted'
+                  : 'bg-muted hover:bg-muted/80 text-foreground border border-border'
               }`}
             >
               <User className="mr-2" size={20} />
