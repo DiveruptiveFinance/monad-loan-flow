@@ -49,17 +49,17 @@ const BorrowerDetailPage = () => {
 
   return (
     <div className="min-h-screen bg-background px-4 py-8">
-      {/* Botón X para regresar */}
-      <div className="max-w-md mx-auto mb-4">
-        <button 
-          onClick={() => navigate('/borrowers-list')}
-          className="text-foreground hover:text-monad-purple transition-colors"
-        >
-          <X size={24} />
-        </button>
-      </div>
       <div className="max-w-md mx-auto space-y-6">
         <Card className="p-6 bg-card rounded-xl shadow-lg border border-border/50">
+          {/* Botón X en el lado derecho */}
+          <div className="flex justify-end mb-4">
+            <button 
+              onClick={() => navigate('/borrowers-list')}
+              className="text-foreground hover:text-monad-purple transition-colors"
+            >
+              <X size={24} />
+            </button>
+          </div>
           {/* Header con avatar y datos básicos */}
           <div className="text-center space-y-4 mb-6">
             <div className="w-24 h-24 bg-gradient-to-br from-monad-purple/30 to-monad-purple/60 rounded-2xl flex items-center justify-center text-4xl mx-auto">
