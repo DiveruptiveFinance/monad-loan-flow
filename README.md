@@ -1,73 +1,66 @@
-# Welcome to your Lovable project
+## Foundry
 
-## Project info
+**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
 
-**URL**: https://lovable.dev/projects/4a816225-4284-49a0-8d6d-5d04b4b38e16
+Foundry consists of:
 
-## How can I edit this code?
+- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
+- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
+- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
+- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
 
-There are several ways of editing your application.
+## Documentation
 
-**Use Lovable**
+https://book.getfoundry.sh/
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/4a816225-4284-49a0-8d6d-5d04b4b38e16) and start prompting.
+## Usage
 
-Changes made via Lovable will be committed automatically to this repo.
+### Build
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```shell
+$ forge build
 ```
 
-**Edit a file directly in GitHub**
+### Test
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```shell
+$ forge test
+```
 
-**Use GitHub Codespaces**
+### Format
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```shell
+$ forge fmt
+```
 
-## What technologies are used for this project?
+### Gas Snapshots
 
-This project is built with:
+```shell
+$ forge snapshot
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Anvil
 
-## How can I deploy this project?
+```shell
+$ anvil
+```
 
-Simply open [Lovable](https://lovable.dev/projects/4a816225-4284-49a0-8d6d-5d04b4b38e16) and click on Share -> Publish.
+### Deploy
 
-## Can I connect a custom domain to my Lovable project?
+```shell
+$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+```
 
-Yes, you can!
+### Cast
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+```shell
+$ cast <subcommand>
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+### Help
+
+```shell
+$ forge --help
+$ anvil --help
+$ cast --help
+```
