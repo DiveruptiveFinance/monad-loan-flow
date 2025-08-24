@@ -7,19 +7,11 @@ const LoginPage = () => {
   const userType = location.state?.type; // 'loan' or 'invest'
 
   const handleWalletLogin = () => {
-    if (userType === 'loan') {
-      navigate('/loan-form');
-    } else {
-      navigate('/borrowers-list');
-    }
+    navigate('/dashboard');
   };
 
   const handleSocialLogin = () => {
-    if (userType === 'loan') {
-      navigate('/loan-form');
-    } else {
-      navigate('/borrowers-list');
-    }
+    navigate('/dashboard');
   };
 
   return (
