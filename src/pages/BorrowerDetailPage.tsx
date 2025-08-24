@@ -130,6 +130,16 @@ const BorrowerDetailPage = () => {
               </div>
               <Progress value={data.fundedPercentage} className="h-3" />
             </div>
+
+            {/* Botones de acción */}
+            <div className="grid grid-cols-2 gap-3 mt-6">
+              <button className="h-9 px-4 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-md text-sm font-medium transition-colors flex items-center justify-center">
+                🔄 Reinvertir
+              </button>
+              <button className="h-9 px-4 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md text-sm font-medium transition-colors flex items-center justify-center">
+                💰 Reclamar
+              </button>
+            </div>
           </div>
         </Card>
 
