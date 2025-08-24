@@ -88,9 +88,14 @@ const DashboardPage = () => {
 
         {/* Sección Deuda */}
         <Card className="p-6 bg-card rounded-xl shadow-sm">
-          <h2 className="text-2xl font-montserrat font-bold text-foreground mb-2">
-            Deuda
-          </h2>
+          <div className="flex justify-between items-center mb-2">
+            <h2 className="text-2xl font-montserrat font-bold text-foreground">
+              Deuda
+            </h2>
+            <Button className="bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold px-4 py-2 rounded-lg">
+              PAGAR
+            </Button>
+          </div>
           <h3 className="text-sm text-muted-text mb-6">
             Los préstamos solicitados
           </h3>
