@@ -92,8 +92,11 @@ const DashboardPage = () => {
             <h2 className="text-2xl font-montserrat font-bold text-foreground">
               Deuda
             </h2>
-            <Button className="bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold px-4 py-2 rounded-lg">
-              PAGAR
+            <Button 
+              onClick={() => navigate('/loan-form')}
+              className="bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold px-4 py-2 rounded-lg"
+            >
+              Pedir prestado
             </Button>
           </div>
           <h3 className="text-sm text-muted-text mb-6">
@@ -154,8 +157,11 @@ const DashboardPage = () => {
             <h2 className="text-2xl font-montserrat font-bold text-foreground">
               Inversiones
             </h2>
-            <Button className="bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold px-4 py-2 rounded-lg">
-              PRESTAR
+            <Button 
+              onClick={() => navigate('/borrowers-list')}
+              className="bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold px-4 py-2 rounded-lg"
+            >
+              Dar prestado
             </Button>
           </div>
           <h3 className="text-sm text-muted-text mb-6">
