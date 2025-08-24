@@ -40,7 +40,14 @@ const DashboardPage = () => {
   ];
 
   // Datos para gráfico lineal
-  const lineData = [
+  const lineData = isNewUser ? [
+    { month: 'Ene', return: 0 },
+    { month: 'Feb', return: 0 },
+    { month: 'Mar', return: 0 },
+    { month: 'Abr', return: 0 },
+    { month: 'May', return: 0 },
+    { month: 'Jun', return: 0 }
+  ] : [
     { month: 'Ene', return: 8.5 },
     { month: 'Feb', return: 9.2 },
     { month: 'Mar', return: 10.1 },
@@ -94,11 +101,11 @@ const DashboardPage = () => {
           </p>
         </div>
 
-        {/* Sección Deuda */}
+        {/* Sección Préstamos */}
         <Card className="p-6 bg-card rounded-xl shadow-sm">
           <div className="mb-2">
             <h2 className="text-2xl font-montserrat font-bold text-foreground">
-              Deuda
+              Préstamos
             </h2>
           </div>
           <h3 className="text-sm text-muted-text mb-6">
@@ -127,30 +134,47 @@ const DashboardPage = () => {
             </div>
           </div>
 
-          <div className="h-48">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={40}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={COLORS[index % COLORS.length]}
-                      className="hover:opacity-80 transition-opacity cursor-pointer"
-                    />
-                  ))}
-                </Pie>
-                <Tooltip content={<CustomTooltip />} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+          {total === 0 ? (
+            <button
+              onClick={() => navigate('/loan-form')}
+              className="w-full bg-card-background p-6 rounded-lg border border-border/30 hover:border-monad-purple/50 transition-all duration-300 group h-48 flex flex-col items-center justify-center"
+            >
+              <div className="flex flex-col items-center gap-2">
+                <div className="text-4xl">➕</div>
+                <p className="text-foreground font-montserrat font-medium">
+                  Comienza a Pedir
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Haz clic para solicitar un préstamo
+                </p>
+              </div>
+            </button>
+          ) : (
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={COLORS[index % COLORS.length]}
+                        className="hover:opacity-80 transition-opacity cursor-pointer"
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<CustomTooltip />} />
+                </PieChart>
+                </ResponsiveContainer>
+              </div>
+            )}
         </Card>
 
         {/* Sección Inversiones */}

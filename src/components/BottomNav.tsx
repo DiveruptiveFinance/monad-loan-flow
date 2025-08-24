@@ -50,7 +50,7 @@ const BottomNav = () => {
           }`}
         >
           <HandCoins size={24} />
-          <span className="text-xs font-montserrat font-bold">Prestado</span>
+          <span className="text-xs font-montserrat font-bold">Préstamo</span>
         </button>
       </div>
     </div>
