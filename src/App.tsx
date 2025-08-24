@@ -11,6 +11,7 @@ import ConfirmationsPage from "./pages/ConfirmationsPage";
 import LoanApprovedPage from "./pages/LoanApprovedPage";
 import BorrowersListPage from "./pages/BorrowersListPage";
 import BorrowerDetailPage from "./pages/BorrowerDetailPage";
+import BorrowerDetail2Page from "./pages/BorrowerDetail2Page";
 import InvestmentApprovedPage from "./pages/InvestmentApprovedPage";
 import DashboardPage from "./pages/DashboardPage";
 import NotFound from "./pages/NotFound";
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/loan-approved" element={<LoanApprovedPage />} />
           <Route path="/borrowers-list" element={<BorrowersListPage />} />
           <Route path="/borrower-detail" element={<BorrowerDetailPage />} />
+          <Route path="/borrower-detail2" element={<BorrowerDetail2Page />} />
           <Route path="/investment-approved" element={<InvestmentApprovedPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

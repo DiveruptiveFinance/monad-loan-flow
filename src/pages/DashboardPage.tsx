@@ -120,13 +120,13 @@ const DashboardPage = () => {
           </div>
           
           <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="text-center">
+            <div className="bg-card-background p-3 rounded-lg border border-border/30 text-center">
               <p className="text-sm text-muted-foreground mb-1">Por pagar</p>
               <p className="text-2xl font-bold text-monad-purple">
                 ${debtData.porPagar.toLocaleString()}
               </p>
             </div>
-            <div className="text-center">
+            <div className="bg-card-background p-3 rounded-lg border border-border/30 text-center">
               <p className="text-sm text-muted-foreground mb-1">Pagado</p>
               <p className="text-2xl font-bold text-foreground">
                 ${debtData.pagado.toLocaleString()}
@@ -189,13 +189,13 @@ const DashboardPage = () => {
           </h3>
           
           <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="text-center">
+            <div className="bg-card-background p-3 rounded-lg border border-border/30 text-center">
               <p className="text-sm text-muted-foreground mb-1">Monto total invertido</p>
               <p className="text-2xl font-bold text-monad-purple">
                 ${investmentData.totalInvested.toLocaleString()}
               </p>
             </div>
-            <div className="text-center">
+            <div className="bg-card-background p-3 rounded-lg border border-border/30 text-center">
               <p className="text-sm text-muted-foreground mb-1">Tasa promedio</p>
               <p className="text-2xl font-bold text-foreground">
                 {investmentData.averageReturn}%

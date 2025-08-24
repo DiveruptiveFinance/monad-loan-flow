@@ -1,21 +1,17 @@
-import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowRight, TrendingUp, X } from 'lucide-react';
+import { ArrowLeft, TrendingUp } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 
-const BorrowerDetailPage = () => {
+const BorrowerDetail2Page = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const borrower = location.state?.borrower;
-  const [investmentAmount, setInvestmentAmount] = useState('');
 
   // Data por defecto si no viene del state
   const defaultBorrower = {
     id: 1,
-    name: 'Molandaki.nad',
+    name: 'Tu préstamo',
     age: 28,
     amount: 15000,
     interestRate: 12,
@@ -33,33 +29,20 @@ const BorrowerDetailPage = () => {
     ...borrower
   };
 
-  const handleSuggestedAmount = (amount: number) => {
-    setInvestmentAmount(amount.toString());
-  };
-
-  const handleConfirmInvestment = () => {
-    navigate('/investment-approved', { 
-      state: { 
-        borrower: data, 
-        investmentAmount: parseFloat(investmentAmount),
-        expectedReturn: (parseFloat(investmentAmount) * data.interestRate / 100)
-      } 
-    });
-  };
-
   return (
     <div className="min-h-screen bg-background px-4 py-8 pb-32">
       <div className="max-w-md mx-auto space-y-6">
         <Card className="p-6 bg-card rounded-xl shadow-lg border border-border/50">
-          {/* Botón X en el lado derecho */}
-          <div className="flex justify-end mb-4">
+          {/* Botón de regresar en el lado izquierdo */}
+          <div className="flex justify-start mb-4">
             <button 
-              onClick={() => navigate('/borrowers-list')}
+              onClick={() => navigate('/dashboard')}
               className="text-foreground hover:text-monad-purple transition-colors"
             >
-              <X size={24} />
+              <ArrowLeft size={24} />
             </button>
           </div>
+          
           {/* Header con avatar y datos básicos */}
           <div className="text-center space-y-4 mb-6">
             <div className="w-24 h-24 bg-gradient-to-br from-monad-purple/30 to-monad-purple/60 rounded-2xl flex items-center justify-center text-4xl mx-auto">
@@ -70,7 +53,7 @@ const BorrowerDetailPage = () => {
                 {data.name}
               </h2>
               <p className="text-muted-foreground">
-                {data.age} años
+                Estado de tu préstamo
               </p>
             </div>
           </div>
@@ -132,63 +115,9 @@ const BorrowerDetailPage = () => {
             </div>
           </div>
         </Card>
-
-        {/* Sección de inversión */}
-        <Card className="p-6 bg-card rounded-xl shadow-sm">
-          <h3 className="text-xl font-montserrat font-bold text-foreground mb-4">
-            Tu inversión
-          </h3>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Monto a invertir en USDC
-              </label>
-              <Input 
-                type="number"
-                value={investmentAmount}
-                onChange={(e) => setInvestmentAmount(e.target.value)}
-                placeholder="500"
-                className="rounded-lg text-lg"
-              />
-            </div>
-
-            <div className="flex gap-2">
-              {[100, 200, 500].map((amount) => (
-                <Button
-                  key={amount}
-                  variant="outline"
-                  onClick={() => handleSuggestedAmount(amount)}
-                  className="flex-1 rounded-lg"
-                >
-                  ${amount}
-                </Button>
-              ))}
-            </div>
-
-            {investmentAmount && (
-              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                <p className="text-sm text-green-700">
-                  Ganancia anual estimada: <span className="font-bold">
-                    ${(parseFloat(investmentAmount) * data.interestRate / 100).toFixed(2)}
-                  </span>
-                </p>
-              </div>
-            )}
-
-            <Button 
-              onClick={handleConfirmInvestment}
-              disabled={!investmentAmount}
-              className="w-full bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-6 rounded-xl text-lg transition-all duration-300"
-            >
-              Confirmar inversión
-              <ArrowRight className="ml-2" size={20} />
-            </Button>
-          </div>
-        </Card>
       </div>
     </div>
   );
 };
 
-export default BorrowerDetailPage;
+export default BorrowerDetail2Page;
