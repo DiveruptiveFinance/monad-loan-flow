@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 const LandingPage = () => {
   const navigate = useNavigate();
   const [isWalletConnected, setIsWalletConnected] = useState(false);
+  const [walletAddress, setWalletAddress] = useState<string>('');
 
   // Monitor wallet connection status
   useEffect(() => {
@@ -23,6 +24,11 @@ const LandingPage = () => {
           const connected = accounts && accounts.length > 0;
           console.log('Wallet connection check:', { accounts, connected });
           setIsWalletConnected(connected);
+          if (connected && accounts[0]) {
+            setWalletAddress(accounts[0]);
+          } else {
+            setWalletAddress('');
+          }
         })
         .catch((error) => {
           console.log('Wallet connection error:', error);
@@ -98,13 +104,25 @@ const LandingPage = () => {
           
           <div className="space-y-4">
             {isWalletConnected && (
-              <Button 
-                onClick={handleContinue}
-                className="w-full bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-6 rounded-xl text-lg transition-all duration-300"
-              >
-                Continuar
-                <ArrowRight className="ml-2" size={20} />
-              </Button>
+              <>
+                {/* Wallet Display */}
+                <div className="border border-monad-purple rounded-lg p-3 bg-card/50">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-monad-purple rounded-full animate-pulse"></div>
+                    <span className="text-sm text-foreground font-mono">
+                      {walletAddress ? `0x${walletAddress.slice(6, 6)}...${walletAddress.slice(-4)}` : 'Connecting...'}
+                    </span>
+                  </div>
+                </div>
+                
+                <Button 
+                  onClick={handleContinue}
+                  className="w-full bg-monad-purple hover:bg-monad-purple/90 text-white font-montserrat font-bold py-6 rounded-xl text-lg transition-all duration-300"
+                >
+                  Continuar
+                  <ArrowRight className="ml-2" size={20} />
+                </Button>
+              </>
             )}
             <div className="flex justify-center">
               <AppKitProvider>
