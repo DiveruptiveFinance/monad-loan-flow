@@ -28,7 +28,10 @@ const BorrowerDetailPage = () => {
     description: 'Necesito capital para expandir mi agencia de desarrollo web. Con esta inversión podré contratar más desarrolladores y tomar proyectos más grandes.'
   };
 
-  const data = borrower || defaultBorrower;
+  const data = {
+    ...defaultBorrower,
+    ...borrower
+  };
 
   const handleSuggestedAmount = (amount: number) => {
     setInvestmentAmount(amount.toString());
