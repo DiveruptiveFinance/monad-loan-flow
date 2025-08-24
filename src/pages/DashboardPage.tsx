@@ -95,6 +95,13 @@ const DashboardPage = () => {
             Los préstamos solicitados
           </h3>
           
+          <div className="text-center mb-4">
+            <p className="text-sm text-muted-foreground mb-1">Monto total</p>
+            <p className="text-3xl font-bold text-foreground">
+              ${(debtData.porPagar + debtData.pagado).toLocaleString()}
+            </p>
+          </div>
+          
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="text-center">
               <p className="text-sm text-muted-foreground mb-1">Por pagar</p>
