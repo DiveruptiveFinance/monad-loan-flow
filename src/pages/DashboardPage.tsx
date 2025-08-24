@@ -8,17 +8,20 @@ import { Button } from '@/components/ui/button';
 const DashboardPage = () => {
   const navigate = useNavigate();
 
+  // Estado de usuario nuevo - cambiar a false para usuario con datos
+  const [isNewUser] = useState(true);
+
   // Datos de deuda
   const [debtData] = useState({
-    porPagar: 7000,
-    pagado: 3000
+    porPagar: isNewUser ? 0 : 7000,
+    pagado: isNewUser ? 0 : 3000
   });
 
   // Datos de inversiones
   const [investmentData] = useState({
-    totalInvested: 15500,
-    averageReturn: 11.2,
-    investments: [
+    totalInvested: isNewUser ? 0 : 15500,
+    averageReturn: isNewUser ? 0 : 11.2,
+    investments: isNewUser ? [] : [
       { id: '1', name: 'Carlos.nad', amount: 5000, expectedReturn: 12.8 },
       { id: '2', name: 'Maria.nad', amount: 3500, expectedReturn: 11.2 },
       { id: '3', name: 'Juan.nad', amount: 4000, expectedReturn: 10.5 },
@@ -180,28 +183,45 @@ const DashboardPage = () => {
             <h4 className="text-lg font-montserrat font-bold text-foreground">
               Préstamos activos
             </h4>
-            {investmentData.investments.map((investment) => (
-              <div key={investment.id} className="bg-card-background p-3 rounded-lg border border-border/30">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h5 className="font-montserrat font-bold text-foreground text-sm">
-                      {investment.name}
-                    </h5>
-                    <p className="text-xs text-muted-foreground">
-                      ${investment.amount.toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-monad-purple font-bold text-sm">
-                      {investment.expectedReturn}%
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      retorno
-                    </p>
+            {investmentData.investments.length > 0 ? (
+              investmentData.investments.map((investment) => (
+                <div key={investment.id} className="bg-card-background p-3 rounded-lg border border-border/30">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h5 className="font-montserrat font-bold text-foreground text-sm">
+                        {investment.name}
+                      </h5>
+                      <p className="text-xs text-muted-foreground">
+                        ${investment.amount.toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-monad-purple font-bold text-sm">
+                        {investment.expectedReturn}%
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        retorno
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <button
+                onClick={() => navigate('/borrowers-list')}
+                className="w-full bg-card-background p-6 rounded-lg border border-border/30 hover:border-monad-purple/50 transition-all duration-300 group"
+              >
+                <div className="flex flex-col items-center gap-2">
+                  <div className="text-4xl">➕</div>
+                  <p className="text-foreground font-montserrat font-medium">
+                    Comienza a invertir
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Haz clic para ver solicitantes
+                  </p>
+                </div>
+              </button>
+            )}
           </div>
 
           <div className="h-48">

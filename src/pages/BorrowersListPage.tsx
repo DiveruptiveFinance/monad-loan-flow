@@ -123,18 +123,22 @@ const BorrowersListPage = () => {
     <div className="min-h-screen bg-background px-4 pt-8 pb-24">
       <div className="max-w-md mx-auto">
         <div className="mb-6">
-          <button 
-            onClick={() => navigate('/dashboard')}
-            className="mb-4 p-2 hover:bg-muted rounded-lg transition-colors"
-          >
-            <ArrowLeft size={24} className="text-foreground" />
-          </button>
-          <h2 className="text-2xl font-montserrat font-bold text-foreground mb-2">
-            Lista de Solicitantes
-          </h2>
-          <h3 className="text-sm text-muted-text">
-            Elige en quién invertir
-          </h3>
+          <div className="flex items-center mb-4">
+            <button 
+              onClick={() => navigate('/dashboard')}
+              className="p-2 hover:bg-muted rounded-lg transition-colors mr-3"
+            >
+              <ArrowLeft size={24} className="text-foreground" />
+            </button>
+            <div className="flex-1">
+              <h2 className="text-2xl font-montserrat font-bold text-foreground mb-1">
+                Lista de Solicitantes
+              </h2>
+              <h3 className="text-sm text-muted-text">
+                Elige en quién invertir
+              </h3>
+            </div>
+          </div>
         </div>
         
         <div className="space-y-4">
